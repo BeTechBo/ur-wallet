@@ -26,6 +26,10 @@ export default async function AdminDashboard() {
           </p>
           <form className="space-y-5" action={registerMember}>
             <div>
+              <label className="block text-[11px] font-bold text-foreground/50 uppercase tracking-widest mb-2">Full Name</label>
+              <input name="fullName" type="text" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm bg-gray-50 outline-none transition-all" placeholder="John Doe" required />
+            </div>
+            <div>
               <label className="block text-[11px] font-bold text-foreground/50 uppercase tracking-widest mb-2">Email Address</label>
               <input name="email" type="email" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm bg-gray-50 outline-none transition-all" placeholder="member@example.com" required />
             </div>

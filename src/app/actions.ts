@@ -51,15 +51,21 @@ export async function logout() {
 // REGISTER MEMBER
 export async function registerMember(formData: FormData) {
   const email = formData.get('email') as string
-  if (!email) return
+  const fullName = formData.get('fullName') as string
+  if (!email || !fullName) return
 
   const adminAuth = createAdminClient().auth
-  const password = Math.random().toString(36).slice(-8) + 'Aa1!'
+  
+  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*"
+  let password = ""
+  for (let i = 0; i < 14; i++) password += charset[Math.floor(Math.random() * charset.length)]
+  password += 'A1!' // ensure strong requirements are met
 
   const { data, error } = await adminAuth.admin.createUser({
     email: email,
     password: password,
     email_confirm: true,
+    user_metadata: { full_name: fullName }
   })
 
   if (error) {

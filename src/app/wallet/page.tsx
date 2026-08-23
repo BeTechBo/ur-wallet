@@ -37,6 +37,10 @@ export default async function WalletPage() {
   const uniqueScores = Array.from(new Set(Object.values(userTotals))).sort((a, b) => b - a);
   const myRank = uniqueScores.indexOf(totalCoins) + 1;
 
+  // Fetch Profile
+  const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', authData.user.id).single();
+  const displayName = profile?.full_name ? profile.full_name.split(' ')[0] : 'My';
+
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-10">
@@ -45,7 +49,7 @@ export default async function WalletPage() {
             <img src="/logo.jpg" alt="Logo" className="h-16 w-16 object-cover" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-foreground">My UR Wallet</h1>
+            <h1 className="text-3xl font-bold text-foreground">{displayName}{displayName === 'My' ? '' : "'s"} UR Wallet</h1>
             <p className="text-sm text-foreground/70 mt-1">Tracking your journey with The Upper Room family.</p>
           </div>
         </div>
