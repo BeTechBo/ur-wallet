@@ -101,8 +101,8 @@ export async function awardCoins(formData: FormData) {
   
   const { error } = await adminClient.from('transactions').insert({
     user_id: userId,
-    amount: points,
-    reason: eventName
+    points_added: points,
+    event_name: eventName
   })
 
   if (error) {

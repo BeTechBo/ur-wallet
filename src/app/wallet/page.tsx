@@ -15,11 +15,11 @@ export default async function WalletPage() {
   // Fetch transactions
   const { data: txs } = await supabase
     .from('transactions')
-    .select('amount, reason, created_at')
+    .select('points_added, event_name, created_at')
     .eq('user_id', authData.user.id)
     .order('created_at', { ascending: false });
     
-  const totalCoins = txs?.reduce((sum, tx) => sum + tx.amount, 0) || 0;
+  const totalCoins = txs?.reduce((sum, tx) => sum + tx.points_added, 0) || 0;
 
   // Fetch verses
   const { data: verses } = await supabase
@@ -28,10 +28,10 @@ export default async function WalletPage() {
     .eq('user_id', authData.user.id);
 
   // Calculate Rank
-  const { data: allTxs } = await supabase.from('transactions').select('user_id, amount');
+  const { data: allTxs } = await supabase.from('transactions').select('user_id, points_added');
   const userTotals: Record<string, number> = {};
   allTxs?.forEach(tx => {
-    userTotals[tx.user_id] = (userTotals[tx.user_id] || 0) + tx.amount;
+    userTotals[tx.user_id] = (userTotals[tx.user_id] || 0) + tx.points_added;
   });
   
   const uniqueScores = Array.from(new Set(Object.values(userTotals))).sort((a, b) => b - a);
@@ -93,11 +93,11 @@ export default async function WalletPage() {
               txs?.map((tx, idx) => (
                 <div key={idx} className="flex justify-between items-center p-3 hover:bg-black/5 rounded-xl transition-colors border border-transparent hover:border-black/5">
                   <div>
-                    <p className="font-bold text-foreground text-sm">{tx.reason}</p>
+                    <p className="font-bold text-foreground text-sm">{tx.event_name}</p>
                     <p className="text-[10px] text-foreground/50 mt-1 font-medium tracking-wide uppercase">{new Date(tx.created_at).toLocaleDateString()}</p>
                   </div>
                   <div className="flex items-center text-primary font-bold bg-primary/10 px-4 py-1.5 rounded-full text-sm shrink-0">
-                    <URCoin className="w-5 h-5 text-[10px] mr-2" /> +{tx.amount}
+                    <URCoin className="w-5 h-5 text-[10px] mr-2" /> +{tx.points_added}
                   </div>
                 </div>
               ))
