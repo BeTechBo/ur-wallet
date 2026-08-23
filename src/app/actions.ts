@@ -154,7 +154,7 @@ export async function distributeVerses() {
   const selectedVerses = unsentVerses.sort(() => 0.5 - Math.random()).slice(0, 3)
   if (selectedVerses.length === 0) return
   
-  const { data: users } = await adminClient.from('profiles').select('id, email').eq('role', 'user')
+  const { data: users } = await adminClient.from('profiles').select('id, email')
   if (!users || users.length === 0) return
   
   for (const user of users) {
