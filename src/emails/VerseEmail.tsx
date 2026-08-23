@@ -1,5 +1,6 @@
 import {
   Body,
+  Button,
   Container,
   Head,
   Heading,
@@ -15,11 +16,13 @@ import * as React from "react";
 interface VerseEmailProps {
   verseText?: string;
   verseReference?: string;
+  walletUrl?: string;
 }
 
 export const VerseEmail = ({
-  verseText = "إِنَّمَا لِلَّهِ انْتَظِرِي يَا نَفْسِي، لِأَنَّ مِنْ قِبَلِهِ رَجَائِي",
-  verseReference = "مز 62: 5",
+  verseText = "“أَنْتُمْ نُورُ الْعَالَمِ. لاَ يُمْكِنُ أَنْ تُخْفَى مَدِينَةٌ مَوْضُوعَةٌ عَلَى جَبَل” (مت 5: 14).",
+  verseReference = "مت 5: 14",
+  walletUrl = "https://urwallet.vercel.app/wallet",
 }: VerseEmailProps) => {
   return (
     <Html>
