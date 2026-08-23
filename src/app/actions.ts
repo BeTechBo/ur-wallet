@@ -184,4 +184,5 @@ export async function distributeVerses() {
   }
   
   revalidatePath('/admin')
+  revalidatePath('/wallet')
 }
