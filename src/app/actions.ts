@@ -20,6 +20,10 @@ const transporter = nodemailer.createTransport({
   },
 })
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : 
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'))
+
 // LOGIN
 export async function login(formData: FormData) {
   const email = formData.get('email') as string
@@ -74,7 +78,7 @@ export async function registerMember(formData: FormData) {
   }
 
   try {
-    const htmlStr = await render(WelcomeEmail({ email: email, password: password }) as React.ReactElement)
+    const htmlStr = await render(WelcomeEmail({ email: email, password: password, loginUrl: `${siteUrl}/` }) as React.ReactElement)
     await transporter.sendMail({
       from: `"The Upper Room" <${process.env.GMAIL_USER}>`,
       to: email,
@@ -114,7 +118,7 @@ export async function awardCoins(formData: FormData) {
 
   if (profile?.email) {
     try {
-      const htmlStr = await render(PointsEmail({ eventName: eventName, pointsAdded: points }) as React.ReactElement)
+      const htmlStr = await render(PointsEmail({ eventName: eventName, pointsAdded: points, walletUrl: `${siteUrl}/wallet` }) as React.ReactElement)
       await transporter.sendMail({
         from: `"The Upper Room" <${process.env.GMAIL_USER}>`,
         to: profile.email,
