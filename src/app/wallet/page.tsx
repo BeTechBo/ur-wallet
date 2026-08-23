@@ -1,8 +1,9 @@
-import { Trophy, History, BookOpen } from 'lucide-react';
+import { Trophy, History, BookOpen, Music, Book, Home, HeartHandshake, Package } from 'lucide-react';
 import AnimatedWallet from '@/components/AnimatedWallet';
 import URCoin from '@/components/URCoin';
 import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
+import { PACKAGES } from '@/lib/packages';
 
 export default async function WalletPage() {
   const supabase = await createClient();
@@ -20,6 +21,20 @@ export default async function WalletPage() {
     .order('created_at', { ascending: false });
     
   const totalCoins = txs?.reduce((sum, tx) => sum + tx.points_added, 0) || 0;
+
+  // Calculate collected packages
+  const collectedPackages: Record<string, number> = {};
+  txs?.forEach(tx => {
+    collectedPackages[tx.event_name] = (collectedPackages[tx.event_name] || 0) + 1;
+  });
+
+  // Icon mapper
+  const packageIcons: Record<string, React.ReactNode> = {
+    "David Prophet Package": <Music className="w-8 h-8 text-[#d88452] mb-4 mx-auto" />,
+    "Samuel Prophet Package": <Book className="w-8 h-8 text-[#d88452] mb-4 mx-auto" />,
+    "The Upper Room Package": <Home className="w-8 h-8 text-[#d88452] mb-4 mx-auto" />,
+    "Saint Paul's Package": <HeartHandshake className="w-8 h-8 text-[#d88452] mb-4 mx-auto" />
+  };
 
   // Fetch verses
   const { data: verses } = await supabase
@@ -106,11 +121,37 @@ export default async function WalletPage() {
         </div>
       </div>
 
+      {/* Collected Packages */}
+      <div className="mt-6 bg-zakhrafa rounded-2xl p-8 border border-secondary/30 shadow-sm">
+        <div className="flex items-center gap-3 mb-8 border-b border-gray-100 pb-4">
+          <Package className="w-5 h-5 text-secondary" />
+          <h2 className="text-xl font-bold text-foreground">Collected Packages</h2>
+        </div>
+        
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+          {Object.values(PACKAGES).map(pkg => {
+            const count = collectedPackages[pkg.name] || 0;
+            const isCollected = count > 0;
+            return (
+              <div key={pkg.id} className={`border rounded-xl p-6 text-center transition-all ${isCollected ? 'bg-white border-secondary shadow-sm' : 'bg-transparent border-gray-200 opacity-60 grayscale'}`}>
+                {packageIcons[pkg.name]}
+                <h3 className="font-bold text-sm text-foreground leading-tight">{pkg.name}</h3>
+                <p className="text-[10px] text-foreground/50 uppercase tracking-wider mt-2 mb-3">{pkg.reason}</p>
+                
+                <div className={`inline-block font-bold text-xs px-3 py-1 rounded-full ${isCollected ? 'bg-secondary/10 text-secondary' : 'bg-gray-100 text-gray-400'}`}>
+                  {count} Earned
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
       {/* Verses Section */}
       <div className="mt-6 bg-zakhrafa rounded-2xl p-8 border border-secondary/30 shadow-sm">
         <div className="flex items-center gap-3 mb-8 border-b border-gray-100 pb-4">
           <BookOpen className="w-5 h-5 text-secondary" />
-          <h2 className="text-xl font-bold text-foreground">Collected Verses</h2>
+          <h2 className="text-xl font-bold text-foreground">Echoes from the Upper Room</h2>
         </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

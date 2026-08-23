@@ -43,10 +43,10 @@ export default async function AdminDashboard() {
         <div className="bg-white rounded-2xl p-8 border border-secondary/30 shadow-sm flex flex-col">
           <div className="flex items-center gap-3 mb-4">
             <Coins className="w-5 h-5 text-secondary" />
-            <h2 className="font-bold text-lg text-foreground">Award UR-coins</h2>
+            <h2 className="font-bold text-lg text-foreground">Award Packages</h2>
           </div>
           <p className="text-xs text-foreground/60 mb-6 leading-relaxed flex-1">
-            Select a member to reward them. A nicely designed email will automatically notify them of their new UR-coins.
+            Select a member to reward them. A nicely designed email will automatically notify them of their new package.
           </p>
           <form className="space-y-5" action={awardCoins}>
             <div>
@@ -57,18 +57,18 @@ export default async function AdminDashboard() {
                 ))}
               </select>
             </div>
-            <div className="flex gap-4">
-              <div className="w-1/3">
-                <label className="block text-[11px] font-bold text-foreground/50 uppercase tracking-widest mb-2">UR-coins</label>
-                <input name="points" type="number" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm bg-gray-50 outline-none transition-all" defaultValue={10} required />
-              </div>
-              <div className="w-2/3">
-                <label className="block text-[11px] font-bold text-foreground/50 uppercase tracking-widest mb-2">Event Name</label>
-                <input name="eventName" type="text" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm bg-gray-50 outline-none transition-all" placeholder="e.g. Bible Study" required />
-              </div>
+            <div>
+              <label className="block text-[11px] font-bold text-foreground/50 uppercase tracking-widest mb-2">Select Package</label>
+              <select name="packageId" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm bg-gray-50 outline-none transition-all" required>
+                <option value="">Select a package...</option>
+                <option value="david">David Prophet Package (20 coins - Tasbeha)</option>
+                <option value="samuel">Samuel Prophet Package (20 coins - Bible Study)</option>
+                <option value="upper_room">The Upper Room Package (50 coins - Both)</option>
+                <option value="paul">Saint Paul's Package (70 coins - Service)</option>
+              </select>
             </div>
             <button type="submit" className="w-full bg-primary text-white py-3 rounded-xl text-sm font-bold hover:bg-primary/90 transition-colors shadow-sm flex items-center justify-center gap-2">
-              <Plus className="w-4 h-4" /> Award UR-coins
+              <Plus className="w-4 h-4" /> Award Package
             </button>
           </form>
         </div>

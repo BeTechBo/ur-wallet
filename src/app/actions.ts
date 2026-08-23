@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { createAdminClient } from '@/utils/supabase/admin'
+import { PACKAGES } from '@/lib/packages'
 import nodemailer from 'nodemailer'
 import { render } from '@react-email/render'
 import WelcomeEmail from '@/emails/WelcomeEmail'
@@ -95,18 +96,19 @@ export async function registerMember(formData: FormData) {
 // AWARD UR-COINS
 export async function awardCoins(formData: FormData) {
   const userId = formData.get('userId') as string
-  const pointsStr = formData.get('points') as string
-  const eventName = formData.get('eventName') as string
-  const points = parseInt(pointsStr)
+  const packageId = formData.get('packageId') as string
   
-  if (!userId || !points || !eventName) return
+  if (!userId || !packageId) return
+
+  const pkg = PACKAGES[packageId as keyof typeof PACKAGES]
+  if (!pkg) return
 
   const adminClient = createAdminClient()
   
   const { error } = await adminClient.from('transactions').insert({
     user_id: userId,
-    points_added: points,
-    event_name: eventName
+    points_added: pkg.points,
+    event_name: pkg.name
   })
 
   if (error) {
@@ -114,23 +116,30 @@ export async function awardCoins(formData: FormData) {
     return
   }
 
+  // Fetch the user's email to notify them
   const { data: profile } = await adminClient.from('profiles').select('email').eq('id', userId).single()
 
   if (profile?.email) {
     try {
-      const htmlStr = await render(PointsEmail({ eventName: eventName, pointsAdded: points, walletUrl: `${siteUrl}/wallet` }) as React.ReactElement)
+      const htmlStr = await render(PointsEmail({ 
+        packageName: pkg.name,
+        reason: pkg.reason,
+        pointsAdded: pkg.points, 
+        walletUrl: `${siteUrl}/wallet` 
+      }) as React.ReactElement)
+      
       await transporter.sendMail({
         from: `"The Upper Room" <${process.env.GMAIL_USER}>`,
         to: profile.email,
-        subject: `You received +${points} UR-coins! 🪙`,
+        subject: `You received the ${pkg.name}!`,
         html: htmlStr,
       })
-    } catch(e) {
-      console.error('Email failed to send:', e)
+    } catch (err) {
+      console.error('Failed to send coins email:', err)
     }
   }
 
-  revalidatePath('/admin')
+  revalidatePath('/wallet')
 }
 
 // DISTRIBUTE VERSES
