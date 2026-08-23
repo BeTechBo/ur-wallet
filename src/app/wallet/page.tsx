@@ -45,9 +45,6 @@ export default async function WalletPage() {
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-10">
         <div className="flex items-center gap-4">
-          <div className="bg-white rounded-full overflow-hidden border border-secondary shadow-sm shrink-0">
-            <img src="/logo.jpg" alt="Logo" className="h-16 w-16 object-cover" />
-          </div>
           <div>
             <h1 className="text-3xl font-bold text-foreground">{displayName}{displayName === 'My' ? '' : "'s"} UR Wallet</h1>
             <p className="text-sm text-foreground/70 mt-1">Tracking your journey with The Upper Room family.</p>
