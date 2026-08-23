@@ -27,7 +27,7 @@ export const PointsEmail = ({
   return (
     <Html>
       <Head />
-      <Preview>You have received +{pointsAdded} UR Points!</Preview>
+      <Preview>You have received +{String(pointsAdded)} UR Points!</Preview>
       <Tailwind>
         <Body className="bg-gray-50 font-sans my-auto mx-auto px-2 pt-5 pb-12">
           
