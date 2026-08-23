@@ -27,7 +27,10 @@ export async function login(formData: FormData) {
   const supabase = await createClient()
 
   const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-  if (error) return { error: error.message }
+  if (error) {
+    console.error(error.message)
+    return
+  }
 
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', data.user.id).single()
   
@@ -48,7 +51,7 @@ export async function logout() {
 // REGISTER MEMBER
 export async function registerMember(formData: FormData) {
   const email = formData.get('email') as string
-  if (!email) return { error: "Email is required" }
+  if (!email) return
 
   const adminAuth = createAdminClient().auth
   const password = Math.random().toString(36).slice(-8) + 'Aa1!'
@@ -61,11 +64,11 @@ export async function registerMember(formData: FormData) {
 
   if (error) {
     console.error('Supabase User Creation Error:', error.message)
-    return { error: error.message }
+    return
   }
 
   try {
-    const htmlStr = await render(WelcomeEmail({ userEmail: email, userPassword: password }) as React.ReactElement)
+    const htmlStr = await render(WelcomeEmail({ email: email, password: password }) as React.ReactElement)
     await transporter.sendMail({
       from: `"The Upper Room" <${process.env.GMAIL_USER}>`,
       to: email,
@@ -77,7 +80,6 @@ export async function registerMember(formData: FormData) {
   }
 
   revalidatePath('/admin')
-  return { success: true }
 }
 
 // AWARD UR-COINS
@@ -87,7 +89,7 @@ export async function awardCoins(formData: FormData) {
   const eventName = formData.get('eventName') as string
   const points = parseInt(pointsStr)
   
-  if (!userId || !points || !eventName) return { error: "All fields required" }
+  if (!userId || !points || !eventName) return
 
   const adminClient = createAdminClient()
   
@@ -97,13 +99,16 @@ export async function awardCoins(formData: FormData) {
     reason: eventName
   })
 
-  if (error) return { error: error.message }
+  if (error) {
+    console.error(error.message)
+    return
+  }
 
   const { data: profile } = await adminClient.from('profiles').select('email').eq('id', userId).single()
 
   if (profile?.email) {
     try {
-      const htmlStr = await render(PointsEmail({ points: points, reason: eventName }) as React.ReactElement)
+      const htmlStr = await render(PointsEmail({ eventName: eventName, pointsAdded: points }) as React.ReactElement)
       await transporter.sendMail({
         from: `"The Upper Room" <${process.env.GMAIL_USER}>`,
         to: profile.email,
@@ -116,7 +121,6 @@ export async function awardCoins(formData: FormData) {
   }
 
   revalidatePath('/admin')
-  return { success: true }
 }
 
 // DISTRIBUTE VERSES
@@ -129,10 +133,10 @@ export async function distributeVerses() {
   const unsentVerses = versesData.filter(v => !sentTexts.has(v.text))
   
   const selectedVerses = unsentVerses.sort(() => 0.5 - Math.random()).slice(0, 3)
-  if (selectedVerses.length === 0) return { error: "No more unsent verses left!" }
+  if (selectedVerses.length === 0) return
   
   const { data: users } = await adminClient.from('profiles').select('id, email').eq('role', 'user')
-  if (!users || users.length === 0) return { error: "No users found to send to." }
+  if (!users || users.length === 0) return
   
   for (const user of users) {
      const randomVerse = selectedVerses[Math.floor(Math.random() * selectedVerses.length)]
@@ -144,7 +148,7 @@ export async function distributeVerses() {
      })
      
      try {
-       const htmlStr = await render(VerseEmail({ verseText: randomVerse.text, reference: randomVerse.reference }) as React.ReactElement)
+       const htmlStr = await render(VerseEmail({ verseText: randomVerse.text, verseReference: randomVerse.reference }) as React.ReactElement)
        await transporter.sendMail({
          from: `"The Upper Room" <${process.env.GMAIL_USER}>`,
          to: user.email,
@@ -157,5 +161,4 @@ export async function distributeVerses() {
   }
   
   revalidatePath('/admin')
-  return { success: true }
 }

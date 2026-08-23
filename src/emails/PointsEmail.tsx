@@ -45,7 +45,7 @@ export const PointsEmail = ({
             
             <Section className="bg-[#e8f4fd] border border-[#b8daff] rounded p-6 text-center my-6">
               <Text className="text-[#0056b3] text-2xl font-bold m-0">
-                +{pointsAdded} Points
+                +{String(pointsAdded)} Points
               </Text>
               <Text className="text-[#0056b3] text-sm mt-2 mb-0">
                 Have been added to your account!
