@@ -1,4 +1,4 @@
-import { Trophy, History, BookOpen, Music, Book, Home, HeartHandshake, Package } from 'lucide-react';
+import { Trophy, History, BookOpen, Music, Book, Home, HeartHandshake, Package, Flame } from 'lucide-react';
 import AnimatedWallet from '@/components/AnimatedWallet';
 import URCoin from '@/components/URCoin';
 import { createClient } from '@/utils/supabase/server';
@@ -128,7 +128,7 @@ export default async function WalletPage() {
           <h2 className="text-xl font-bold text-foreground">Collected Packages</h2>
         </div>
         
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 place-items-center mt-4">
+        <div className="flex flex-wrap justify-center gap-6 mt-4">
           {Object.values(PACKAGES).map(pkg => {
             const count = collectedPackages[pkg.name] || 0;
             const isCollected = count > 0;
@@ -199,6 +199,25 @@ export default async function WalletPage() {
                     <span className="text-[#FCF8F2] font-black text-xs sm:text-sm tracking-widest uppercase leading-none">St. Paul</span>
                     <span className="text-[#FCF8F2] font-bold text-[8px] sm:text-[9px] tracking-wider uppercase opacity-80 mt-1">Service</span>
                     <div className="mt-2.5 bg-[#FCF8F2] text-[#b75d32] text-[8px] sm:text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest shadow-sm">
+                      {count > 0 ? `${count}x Earned` : 'Locked'}
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+            if (pkg.id === 'nehemiah') {
+              return (
+                <div key={pkg.id} className={`relative flex flex-col items-center justify-center w-full max-w-[170px] aspect-square transition-all duration-300 ${isCollected ? 'hover:scale-105' : 'opacity-50 grayscale hover:opacity-80'}`}>
+                  <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full drop-shadow-md">
+                    {/* Horizontal Hexagon Badge */}
+                    <polygon points="25,5 75,5 95,50 75,95 25,95 5,50" fill="#3b5c5e" />
+                    <polygon points="28,11 72,11 89,50 72,89 28,89 11,50" fill="none" stroke="#FCF8F2" strokeWidth="1.5" />
+                  </svg>
+                  <div className="relative z-10 flex flex-col items-center justify-center text-center px-4">
+                    <Flame className="w-7 h-7 text-[#FCF8F2] mb-1.5" />
+                    <span className="text-[#FCF8F2] font-black text-[10px] sm:text-xs tracking-widest uppercase leading-none mt-1">Nehemiah</span>
+                    <span className="text-[#FCF8F2] font-bold text-[8px] sm:text-[9px] tracking-wider uppercase opacity-80 mt-1">Engager</span>
+                    <div className="mt-2.5 bg-[#FCF8F2] text-[#3b5c5e] text-[8px] sm:text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest shadow-sm">
                       {count > 0 ? `${count}x Earned` : 'Locked'}
                     </div>
                   </div>

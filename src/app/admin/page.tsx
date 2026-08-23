@@ -65,6 +65,7 @@ export default async function AdminDashboard() {
                 <option value="samuel">Samuel Prophet Package (20 coins - Bible Study)</option>
                 <option value="upper_room">The Upper Room Package (50 coins - Both)</option>
                 <option value="paul">Saint Paul's Package (70 coins - Service)</option>
+                <option value="nehemiah">Nehemiah's Package (30 coins - Engager)</option>
               </select>
             </div>
             <button type="submit" className="w-full bg-primary text-white py-3 rounded-xl text-sm font-bold hover:bg-primary/90 transition-colors shadow-sm flex items-center justify-center gap-2">
