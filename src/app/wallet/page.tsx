@@ -128,21 +128,85 @@ export default async function WalletPage() {
           <h2 className="text-xl font-bold text-foreground">Collected Packages</h2>
         </div>
         
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 place-items-center mt-4">
           {Object.values(PACKAGES).map(pkg => {
             const count = collectedPackages[pkg.name] || 0;
             const isCollected = count > 0;
-            return (
-              <div key={pkg.id} className={`border rounded-xl p-6 text-center transition-all ${isCollected ? 'bg-white border-secondary shadow-sm' : 'bg-transparent border-gray-200 opacity-60 grayscale'}`}>
-                {packageIcons[pkg.name]}
-                <h3 className="font-bold text-sm text-foreground leading-tight">{pkg.name}</h3>
-                <p className="text-[10px] text-foreground/50 uppercase tracking-wider mt-2 mb-3">{pkg.reason}</p>
-                
-                <div className={`inline-block font-bold text-xs px-3 py-1 rounded-full ${isCollected ? 'bg-secondary/10 text-secondary' : 'bg-gray-100 text-gray-400'}`}>
-                  {count} Earned
+            
+            if (pkg.id === 'david') {
+              return (
+                <div key={pkg.id} className={`relative flex flex-col items-center justify-center w-full max-w-[170px] aspect-square transition-all duration-300 ${isCollected ? 'hover:scale-105' : 'opacity-50 grayscale hover:opacity-80'}`}>
+                  <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full drop-shadow-md">
+                    <circle cx="50" cy="50" r="48" fill="#324b4c" />
+                    <circle cx="50" cy="50" r="43" fill="none" stroke="#FCF8F2" strokeWidth="1.5" strokeDasharray="3 3" />
+                  </svg>
+                  <div className="relative z-10 flex flex-col items-center justify-center text-center px-4">
+                    <Music className="w-7 h-7 text-[#FCF8F2] mb-1.5" />
+                    <span className="text-[#FCF8F2] font-black text-xs sm:text-sm tracking-widest uppercase leading-none">David</span>
+                    <span className="text-[#FCF8F2] font-bold text-[8px] sm:text-[9px] tracking-wider uppercase opacity-80 mt-1">Tasbeha</span>
+                    <div className="mt-2.5 bg-[#FCF8F2] text-[#324b4c] text-[8px] sm:text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest shadow-sm">
+                      {count > 0 ? `${count}x Earned` : 'Locked'}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )
+              );
+            }
+            if (pkg.id === 'samuel') {
+              return (
+                <div key={pkg.id} className={`relative flex flex-col items-center justify-center w-full max-w-[170px] aspect-square transition-all duration-300 ${isCollected ? 'hover:scale-105' : 'opacity-50 grayscale hover:opacity-80'}`}>
+                  <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full drop-shadow-md">
+                    <polygon points="50,2 95,25 95,75 50,98 5,75 5,25" fill="#d88452" />
+                    <polygon points="50,8 89,30 89,70 50,92 11,70 11,30" fill="none" stroke="#FCF8F2" strokeWidth="1.5" />
+                  </svg>
+                  <div className="relative z-10 flex flex-col items-center justify-center text-center px-4 mt-1">
+                    <Book className="w-7 h-7 text-[#FCF8F2] mb-1.5" />
+                    <span className="text-[#FCF8F2] font-black text-xs sm:text-sm tracking-widest uppercase leading-none">Samuel</span>
+                    <span className="text-[#FCF8F2] font-bold text-[8px] sm:text-[9px] tracking-wider uppercase opacity-80 mt-1">Bible Study</span>
+                    <div className="mt-2.5 bg-[#FCF8F2] text-[#d88452] text-[8px] sm:text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest shadow-sm">
+                      {count > 0 ? `${count}x Earned` : 'Locked'}
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+            if (pkg.id === 'upper_room') {
+              return (
+                <div key={pkg.id} className={`relative flex flex-col items-center justify-center w-full max-w-[170px] aspect-square transition-all duration-300 ${isCollected ? 'hover:scale-105' : 'opacity-50 grayscale hover:opacity-80'}`}>
+                  <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full drop-shadow-md">
+                    <path d="M12,5 L88,5 L88,40 C88,75 50,98 50,98 C50,98 12,75 12,40 Z" fill="#223637" />
+                    <path d="M17,10 L83,10 L83,40 C83,70 50,89 50,89 C50,89 17,70 17,40 Z" fill="none" stroke="#FCF8F2" strokeWidth="1.5" />
+                  </svg>
+                  <div className="relative z-10 flex flex-col items-center justify-center text-center px-4 mb-2">
+                    <Home className="w-7 h-7 text-[#FCF8F2] mb-1.5" />
+                    <span className="text-[#FCF8F2] font-black text-[10px] sm:text-xs tracking-widest uppercase leading-none mt-0.5">Upper Room</span>
+                    <span className="text-[#FCF8F2] font-bold text-[8px] sm:text-[9px] tracking-wider uppercase opacity-80 mt-1">Fellowship</span>
+                    <div className="mt-2.5 bg-[#FCF8F2] text-[#223637] text-[8px] sm:text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest shadow-sm">
+                      {count > 0 ? `${count}x Earned` : 'Locked'}
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+            if (pkg.id === 'paul') {
+              return (
+                <div key={pkg.id} className={`relative flex flex-col items-center justify-center w-full max-w-[170px] aspect-square transition-all duration-300 ${isCollected ? 'hover:scale-105' : 'opacity-50 grayscale hover:opacity-80'}`}>
+                  <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full drop-shadow-md">
+                    <polygon points="30,5 70,5 95,30 95,70 70,95 30,95 5,70 5,30" fill="#b75d32" />
+                    <polygon points="32,10 68,10 90,32 90,68 68,90 32,90 10,68 10,32" fill="none" stroke="#FCF8F2" strokeWidth="1.5" />
+                  </svg>
+                  <div className="relative z-10 flex flex-col items-center justify-center text-center px-4">
+                    <HeartHandshake className="w-7 h-7 text-[#FCF8F2] mb-1.5" />
+                    <span className="text-[#FCF8F2] font-black text-xs sm:text-sm tracking-widest uppercase leading-none">St. Paul</span>
+                    <span className="text-[#FCF8F2] font-bold text-[8px] sm:text-[9px] tracking-wider uppercase opacity-80 mt-1">Service</span>
+                    <div className="mt-2.5 bg-[#FCF8F2] text-[#b75d32] text-[8px] sm:text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest shadow-sm">
+                      {count > 0 ? `${count}x Earned` : 'Locked'}
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+            
+            return null;
           })}
         </div>
       </div>
