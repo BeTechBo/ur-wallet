@@ -167,11 +167,15 @@ export async function distributeVerses() {
      })
      
      try {
-       const htmlStr = await render(VerseEmail({ verseText: randomVerse.text, verseReference: randomVerse.reference }) as React.ReactElement)
+       const htmlStr = await render(VerseEmail({ 
+         verseText: randomVerse.text, 
+         verseReference: randomVerse.reference,
+         walletUrl: `${siteUrl}/wallet` 
+       }) as React.ReactElement)
        await transporter.sendMail({
          from: `"The Upper Room" <${process.env.GMAIL_USER}>`,
          to: user.email,
-         subject: 'Your Verse of the Day ✝',
+         subject: 'Echoes from the Upper Room',
          html: htmlStr,
        })
      } catch(e) {
