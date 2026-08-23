@@ -25,9 +25,13 @@
 }
 
 body {
-  background: var(--background);
+  background: 
+    linear-gradient(to bottom, rgba(252, 248, 242, 0.88), rgba(252, 248, 242, 0.95)),
+    url('/images/upper_room_bg.jpg') center/cover fixed;
+  background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  min-height: 100vh;
 }
 
 @keyframes pop-coin {
