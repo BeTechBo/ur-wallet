@@ -104,11 +104,12 @@ export async function registerMember(formData: FormData) {
     await transporter.sendMail({
       from: `"The Upper Room" <${process.env.GMAIL_USER}>`,
       to: email,
-      subject: 'Welcome to The Upper Room Family! ✝',
+      subject: 'Welcome to The Upper Room Family! ✨',
       html: htmlStr,
     })
-  } catch (e) {
+  } catch (e: any) {
     console.error('Email failed to send:', e)
+    redirect(`/admin?error=${encodeURIComponent('Email failed to send: ' + e.message)}`)
   }
 
   revalidatePath('/admin')
