@@ -66,10 +66,12 @@ export async function registerMember(formData: FormData) {
 
   const adminClient = createAdminClient()
   
-  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*"
-  let password = ""
-  for (let i = 0; i < 14; i++) password += charset[Math.floor(Math.random() * charset.length)]
-  password += 'A1!' // ensure strong requirements are met
+  // Create a memorable but secure password: FirstName@UR + 4 random numbers + !
+  // e.g., "Ebram@UR4821!"
+  const firstName = fullName.split(' ')[0].replace(/[^a-zA-Z]/g, '');
+  const cleanFirstName = firstName ? firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase() : 'Member';
+  const randomDigits = Math.floor(1000 + Math.random() * 9000); // 4 digit number
+  const password = `${cleanFirstName}@UR${randomDigits}!`;
 
   const { data, error } = await adminClient.auth.admin.createUser({
     email: email,
