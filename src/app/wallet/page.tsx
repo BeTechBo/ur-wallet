@@ -67,9 +67,12 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
   const uniqueScores = Array.from(new Set(Object.values(userTotals))).sort((a, b) => b - a);
   const myRank = uniqueScores.indexOf(totalCoins) + 1;
 
-  // Fetch Profile
-  const { data: profile } = await supabase.from('profiles').select('full_name, major, date_of_birth, email').eq('id', authData.user.id).single();
-  const displayName = profile?.full_name ? profile.full_name.split(' ')[0] : 'My';
+  // Fetch Profile securely and gracefully
+  const { data: profile } = await supabase.from('profiles').select('*').eq('id', authData.user.id).single();
+  
+  // Fallback logic in case the profiles row is empty or old
+  const fullName = profile?.full_name || authData.user.user_metadata?.full_name || '-';
+  const displayName = fullName !== '-' ? fullName.split(' ')[0] : 'My';
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -118,7 +121,7 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-1">
               <p className="text-xs font-bold text-foreground/50 uppercase tracking-widest">Full Name</p>
-              <p className="text-lg font-medium text-foreground">{profile?.full_name || '-'}</p>
+              <p className="text-lg font-medium text-foreground">{fullName}</p>
             </div>
             <div className="space-y-1">
               <p className="text-xs font-bold text-foreground/50 uppercase tracking-widest">Email Address</p>

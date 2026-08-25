@@ -205,3 +205,30 @@ export async function distributeVerses() {
   revalidatePath('/admin')
   revalidatePath('/wallet')
 }
+
+export async function updateMyProfile(formData: FormData) {
+  const adminClient = createAdminClient()
+  const { data: authData } = await adminClient.auth.getUser()
+  if (!authData?.user) return
+  
+  const fullName = formData.get('fullName') as string
+  const major = formData.get('major') as string
+  const dob = formData.get('dob') as string
+
+  if (fullName) {
+    await adminClient.auth.admin.updateUserById(authData.user.id, {
+      user_metadata: { full_name: fullName }
+    })
+  }
+
+  await adminClient.from('profiles').upsert({
+    id: authData.user.id,
+    email: authData.user.email,
+    full_name: fullName || undefined,
+    major: major || undefined,
+    date_of_birth: dob ? dob : null
+  }, { onConflict: 'id' })
+
+  revalidatePath('/wallet')
+}
+
