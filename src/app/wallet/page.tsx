@@ -6,6 +6,23 @@ import { redirect } from 'next/navigation';
 import { PACKAGES } from '@/lib/packages';
 import Link from 'next/link';
 
+const NaqoosIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    {/* Left Cymbal */}
+    <path d="M5 14 C5 10 10 10 10 14 Z" fill="currentColor" stroke="none" />
+    <path d="M5 14 C5 10 10 10 10 14" strokeWidth="1.5" />
+    <line x1="7.5" y1="10" x2="6" y2="4" strokeWidth="2" />
+    
+    {/* Right Cymbal */}
+    <path d="M14 14 C14 10 19 10 19 14 Z" fill="currentColor" stroke="none" />
+    <path d="M14 14 C14 10 19 10 19 14" strokeWidth="1.5" />
+    <line x1="16.5" y1="10" x2="18" y2="4" strokeWidth="2" />
+    
+    {/* Sound Waves / Clash */}
+    <path d="M12 11v5M9 16h6" strokeWidth="1.5" />
+  </svg>
+);
+
 export default async function WalletPage(props: { searchParams?: Promise<{ tab?: string }> }) {
   const supabase = await createClient();
   const { data: authData } = await supabase.auth.getUser();
@@ -186,7 +203,7 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
                       <circle cx="50" cy="50" r="43" fill="none" stroke="#FCF8F2" strokeWidth="1.5" strokeDasharray="3 3" />
                     </svg>
                     <div className="relative z-10 flex flex-col items-center justify-center text-center px-4">
-                      <Music className="w-7 h-7 text-[#FCF8F2] mb-1.5" />
+                      <NaqoosIcon className="w-7 h-7 text-[#FCF8F2] mb-1.5" />
                       <span className="text-[#FCF8F2] font-black text-xs sm:text-sm tracking-widest uppercase leading-none">David</span>
                       <span className="text-[#FCF8F2] font-bold text-[8px] sm:text-[9px] tracking-wider uppercase opacity-80 mt-1">Tasbeha</span>
                       <div className="mt-2.5 bg-[#FCF8F2] text-[#324b4c] text-[8px] sm:text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest shadow-sm">
@@ -273,11 +290,12 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
                 return (
                   <div key={pkg.id} className={`relative flex flex-col items-center justify-center w-full max-w-[170px] aspect-square transition-all duration-300 ${isCollected ? 'hover:scale-105' : 'opacity-50 grayscale hover:opacity-80'}`}>
                     <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full drop-shadow-md">
-                      <polygon points="50,5 61,35 95,35 68,57 79,90 50,70 21,90 32,57 5,35 39,35" fill="#c84b31" />
-                      <polygon points="50,12 59,38 86,38 64,55 72,81 50,65 28,81 36,55 14,38 41,38" fill="none" stroke="#FCF8F2" strokeWidth="1.5" />
+                      {/* Christmas Tree Shape */}
+                      <polygon points="50,5 35,35 42,35 25,65 35,65 15,95 85,95 65,65 75,65 58,35 65,35" fill="#c84b31" />
+                      <polygon points="50,11 38,33 44,33 28,63 36,63 19,92 81,92 64,63 72,63 56,33 62,33" fill="none" stroke="#FCF8F2" strokeWidth="1.5" />
                     </svg>
-                    <div className="relative z-10 flex flex-col items-center justify-center text-center px-4 mt-2">
-                      <Star className="w-6 h-6 text-[#FCF8F2] mb-1" fill="#FCF8F2" />
+                    <div className="relative z-10 flex flex-col items-center justify-center text-center px-4 mt-12">
+                      <Star className="w-5 h-5 text-[#FCF8F2] mb-1" fill="#FCF8F2" />
                       <span className="text-[#FCF8F2] font-black text-[10px] sm:text-[11px] tracking-widest uppercase leading-none mt-0.5">Christmas</span>
                       <span className="text-[#FCF8F2] font-bold text-[8px] sm:text-[9px] tracking-wider uppercase opacity-90 mt-1">Major Event</span>
                       <div className="mt-2 bg-[#FCF8F2] text-[#c84b31] text-[8px] sm:text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest shadow-sm">
