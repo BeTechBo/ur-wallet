@@ -1,29 +1,39 @@
-import { Body, Container, Head, Heading, Html, Preview, Tailwind, Text, Button, Section, Hr } from "@react-email/components";
+import { Body, Container, Head, Heading, Html, Preview, Tailwind, Text, Button, Section, Hr, Img } from "@react-email/components";
 import * as React from "react";
 
 interface PointsEmailProps {
+  packageId?: string;
   packageName?: string;
   reason?: string;
   pointsAdded?: number;
   walletUrl?: string;
+  siteUrl?: string;
 }
 
 export const PointsEmail = ({
+  packageId = "upper_room",
   packageName = "The Upper Room Package",
   reason = "Attending Both",
   pointsAdded = 50,
   walletUrl = "https://urwallet.vercel.app/wallet",
+  siteUrl = "https://urwallet.vercel.app",
 }: PointsEmailProps) => {
+  const previewText = `You received the ${packageName}!`;
+
   return (
     <Html>
       <Head />
-      <Preview>{`You received the ${packageName}!`}</Preview>
+      <Preview>{previewText}</Preview>
       <Tailwind>
         <Body className="bg-[#FCF8F2] font-sans my-auto mx-auto pt-[40px]">
+          {/* Invisible space hack to prevent email clients from showing body text in preview */}
+          <div style={{ display: 'none', overflow: 'hidden', lineHeight: '1px', opacity: 0, maxHeight: 0, maxWidth: 0 }}>
+            {Array.from({ length: 150 }).map(() => '\u200C\u00A0').join('')}
+          </div>
           <Container className="bg-white border border-[#E8DFD5] rounded-2xl mx-auto p-10 max-w-[500px] shadow-sm">
             
             <Heading className="text-[#324b4c] text-3xl font-bold text-center mt-2 p-0 tracking-tight">
-              A Gift for You! 🎁
+              A Gift for You! ✨
             </Heading>
             
             <Text className="text-[#324b4c]/80 text-center text-lg mt-2 mb-6 tracking-wide">
@@ -31,6 +41,16 @@ export const PointsEmail = ({
             </Text>
 
             <Hr className="border-[#E8DFD5] my-6" />
+
+            <Section className="text-center w-full mb-6 mt-4">
+              <Img 
+                src={`${siteUrl}/api/badge/${packageId}`} 
+                width="140" 
+                height="140" 
+                alt={`${packageName} Badge`} 
+                className="mx-auto" 
+              />
+            </Section>
 
             <Section className="bg-[#FCF8F2] rounded-xl p-8 text-center border border-[#E8DFD5]">
               <Text className="text-[#324b4c] text-base font-bold uppercase tracking-widest m-0">

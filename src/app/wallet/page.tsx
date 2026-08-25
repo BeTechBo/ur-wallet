@@ -312,6 +312,25 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
                   </div>
                 );
               }
+              if (pkg.id === 'welcome_badge') {
+                return (
+                  <div key={pkg.id} className={`relative flex flex-col items-center justify-center w-full max-w-[170px] aspect-square transition-all duration-300 ${isCollected ? 'hover:scale-105' : 'opacity-50 grayscale hover:opacity-80'}`}>
+                    <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full drop-shadow-md">
+                      {/* Hexagon point-up shield */}
+                      <polygon points="50,5 90,25 90,65 50,95 10,65 10,25" fill="#4a5568" />
+                      <polygon points="50,11 84,29 84,62 50,88 16,62 16,29" fill="none" stroke="#FCF8F2" strokeWidth="1.5" />
+                    </svg>
+                    <div className="relative z-10 flex flex-col items-center justify-center text-center px-4">
+                      <User className="w-7 h-7 text-[#FCF8F2] mb-1.5" />
+                      <span className="text-[#FCF8F2] font-black text-[10px] sm:text-xs tracking-widest uppercase leading-none mt-1">Welcome</span>
+                      <span className="text-[#FCF8F2] font-bold text-[8px] sm:text-[9px] tracking-wider uppercase opacity-80 mt-1">Joined</span>
+                      <div className="mt-2.5 bg-[#FCF8F2] text-[#4a5568] text-[8px] sm:text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest shadow-sm">
+                        {count > 0 ? `${count}x Earned` : 'Locked'}
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
               
               return null;
             })}

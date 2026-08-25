@@ -4,5 +4,6 @@ export const PACKAGES = {
   upper_room: { id: 'upper_room', name: 'The Upper Room Package', reason: 'Both', points: 50 },
   paul: { id: 'paul', name: "Saint Paul's Package", reason: 'Service', points: 70 },
   nehemiah: { id: 'nehemiah', name: "Nehemiah's Package", reason: 'Engager', points: 30 },
-  christmas_night: { id: 'christmas_night', name: "Christmas Night Badge", reason: 'Major Event', points: 100 }
+  christmas_night: { id: 'christmas_night', name: "Christmas Night Badge", reason: 'Major Event', points: 100 },
+  welcome_badge: { id: 'welcome_badge', name: "Welcome Badge", reason: 'Joined', points: 20 }
 };

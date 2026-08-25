@@ -144,10 +144,12 @@ export async function awardCoins(formData: FormData) {
   if (profile?.email) {
     try {
       const htmlStr = await render(PointsEmail({ 
+        packageId: pkg.id,
         packageName: pkg.name,
         reason: pkg.reason,
         pointsAdded: pkg.points, 
-        walletUrl: `${siteUrl}/wallet` 
+        walletUrl: `${siteUrl}/wallet`,
+        siteUrl: siteUrl
       }) as React.ReactElement)
       
       await transporter.sendMail({

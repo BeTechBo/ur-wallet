@@ -86,6 +86,7 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
                 <option value="paul">Saint Paul's Package (70 coins - Service)</option>
                 <option value="nehemiah">Nehemiah's Package (30 coins - Engager)</option>
                 <option value="christmas_night">Christmas Night Badge (100 coins - Major Event)</option>
+                <option value="welcome_badge">Welcome Badge (20 coins - Joined)</option>
               </select>
             </div>
             <button type="submit" className="w-full bg-primary text-white py-3 rounded-xl text-sm font-bold hover:bg-primary/90 transition-colors shadow-sm flex items-center justify-center gap-2">
