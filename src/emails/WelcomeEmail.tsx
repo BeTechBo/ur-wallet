@@ -43,20 +43,28 @@ export const WelcomeEmail = ({
               Dear Family Member,
             </Text>
             <Text className="text-black text-base leading-6">
-              We are so happy to have you with us! Kindly see your UR wallet credentials below so you can login, track your points, and view the verses you've collected.
+              We are so happy to have you with us! Kindly see your profile credentials below so you can login, track your points, and view the verses you've collected.
             </Text>
             
             <Section className="bg-gray-100 border border-gray-200 rounded p-4 text-center my-6">
-              <Text className="text-black text-sm m-0"><strong>Email:</strong> {email}</Text>
-              <Text className="text-black text-sm m-0 mt-2"><strong>Password:</strong> {password}</Text>
+              <Text className="text-black text-lg font-bold m-0 mb-2">
+                Email: {email}
+              </Text>
+              <Text className="text-black text-lg font-bold m-0">
+                Password: {password}
+              </Text>
             </Section>
+            
+            <Text className="text-black text-base leading-6 mt-6">
+              Please click the button below to sign in:
+            </Text>
 
-            <Section className="text-center mt-8 mb-8">
+            <Section className="text-center mt-[32px] mb-[32px]">
               <Button
                 className="bg-[#007bff] rounded text-white text-base font-bold no-underline text-center px-6 py-3"
                 href={loginUrl}
               >
-                Log in to UR Wallet
+                Log in to your Profile
               </Button>
             </Section>
             

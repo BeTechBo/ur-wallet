@@ -76,7 +76,7 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
         <div className="flex items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">{displayName}{displayName === 'My' ? '' : "'s"} UR Wallet</h1>
+            <h1 className="text-3xl font-bold text-foreground">Welcome Child of the King</h1>
             <p className="text-sm text-foreground/70 mt-1">Tracking your journey with The Upper Room family.</p>
           </div>
         </div>

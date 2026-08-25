@@ -82,10 +82,19 @@ export async function registerMember(formData: FormData) {
 
   // Update profile with major and dob
   if (data?.user) {
-    await adminClient.from('profiles').update({ 
+    // Wait briefly to ensure Supabase's auth trigger has finished creating the initial profile row
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    const { error: updateError } = await adminClient.from('profiles').upsert({ 
+      id: data.user.id,
+      email: email,
+      full_name: fullName,
       major: major, 
       date_of_birth: dob ? dob : null 
-    }).eq('id', data.user.id)
+    }, { onConflict: 'id' });
+    
+    if (updateError) {
+      console.error('Failed to update profile with major/dob:', updateError);
+    }
   }
 
   try {
