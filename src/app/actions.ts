@@ -61,16 +61,14 @@ export async function registerMember(formData: FormData) {
   const dob = formData.get('dob') as string
   
   if (!email || !fullName || !major) {
-    throw new Error("Missing required fields: Email, Full Name, or Major.");
+    redirect('/admin?error=Missing required fields');
   }
 
   const adminClient = createAdminClient()
   
-  // Create a memorable but secure password: FirstName@UR + 4 random numbers + !
-  // e.g., "Ebram@UR4821!"
   const firstName = fullName.split(' ')[0].replace(/[^a-zA-Z]/g, '');
   const cleanFirstName = firstName ? firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase() : 'Member';
-  const randomDigits = Math.floor(1000 + Math.random() * 9000); // 4 digit number
+  const randomDigits = Math.floor(1000 + Math.random() * 9000); 
   const password = `${cleanFirstName}@UR${randomDigits}!`;
 
   const { data, error } = await adminClient.auth.admin.createUser({
@@ -82,12 +80,10 @@ export async function registerMember(formData: FormData) {
 
   if (error) {
     console.error('Supabase User Creation Error:', error.message)
-    throw new Error(`Supabase Error: ${error.message}. If you deleted this user previously, their old profile might still exist in the database and block re-registration.`);
+    redirect(`/admin?error=${encodeURIComponent(error.message)}`);
   }
 
-  // Update profile with major and dob
   if (data?.user) {
-    // Wait briefly to ensure Supabase's auth trigger has finished creating the initial profile row
     await new Promise(resolve => setTimeout(resolve, 1500));
     const { error: updateError } = await adminClient.from('profiles').upsert({ 
       id: data.user.id,
@@ -99,7 +95,7 @@ export async function registerMember(formData: FormData) {
     
     if (updateError) {
       console.error('Failed to update profile with major/dob:', updateError);
-      throw new Error(`Database Update Error: ${updateError.message}`);
+      redirect(`/admin?error=${encodeURIComponent(updateError.message)}`);
     }
   }
 

@@ -2,15 +2,24 @@ import { Users, Coins, Mail, Plus } from 'lucide-react';
 import { registerMember, awardCoins, distributeVerses } from '@/app/actions';
 import { createAdminClient } from '@/utils/supabase/admin';
 
-export default async function AdminDashboard() {
+export default async function AdminDashboard(props: { searchParams?: Promise<{ error?: string }> }) {
   const adminClient = createAdminClient();
   const { data: users } = await adminClient.from('profiles').select('id, email, full_name').eq('role', 'user');
+
+  const searchParams = await props.searchParams;
+  const errorMsg = searchParams?.error;
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="mb-10 border-b border-secondary/30 pb-6">
         <h1 className="text-3xl font-bold text-foreground">Admin Controls</h1>
         <p className="text-sm text-foreground/60 mt-2">Manage the family, award UR-coins, and distribute the verses of the day.</p>
+        
+        {errorMsg && (
+          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm font-medium">
+            ⚠️ Error: {errorMsg}
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
