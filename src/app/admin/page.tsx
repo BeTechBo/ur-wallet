@@ -33,6 +33,16 @@ export default async function AdminDashboard() {
               <label className="block text-[11px] font-bold text-foreground/50 uppercase tracking-widest mb-2">Email Address</label>
               <input name="email" type="email" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm bg-gray-50 outline-none transition-all" placeholder="member@example.com" required />
             </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[11px] font-bold text-foreground/50 uppercase tracking-widest mb-2">Major</label>
+                <input name="major" type="text" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm bg-gray-50 outline-none transition-all" placeholder="e.g. Computer Science" required />
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-foreground/50 uppercase tracking-widest mb-2">Date of Birth</label>
+                <input name="dob" type="date" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm bg-gray-50 outline-none transition-all text-foreground/70" />
+              </div>
+            </div>
             <button type="submit" className="w-full bg-foreground text-white py-3 rounded-xl text-sm font-bold hover:bg-foreground/90 transition-colors shadow-sm">
               Add Member & Send Email
             </button>
@@ -66,6 +76,7 @@ export default async function AdminDashboard() {
                 <option value="upper_room">The Upper Room Package (50 coins - Both)</option>
                 <option value="paul">Saint Paul's Package (70 coins - Service)</option>
                 <option value="nehemiah">Nehemiah's Package (30 coins - Engager)</option>
+                <option value="christmas_night">Christmas Night Badge (100 coins - Major Event)</option>
               </select>
             </div>
             <button type="submit" className="w-full bg-primary text-white py-3 rounded-xl text-sm font-bold hover:bg-primary/90 transition-colors shadow-sm flex items-center justify-center gap-2">

@@ -57,16 +57,18 @@ export async function logout() {
 export async function registerMember(formData: FormData) {
   const email = formData.get('email') as string
   const fullName = formData.get('fullName') as string
-  if (!email || !fullName) return
+  const major = formData.get('major') as string
+  const dob = formData.get('dob') as string
+  if (!email || !fullName || !major) return
 
-  const adminAuth = createAdminClient().auth
+  const adminClient = createAdminClient()
   
   const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*"
   let password = ""
   for (let i = 0; i < 14; i++) password += charset[Math.floor(Math.random() * charset.length)]
   password += 'A1!' // ensure strong requirements are met
 
-  const { data, error } = await adminAuth.admin.createUser({
+  const { data, error } = await adminClient.auth.admin.createUser({
     email: email,
     password: password,
     email_confirm: true,
@@ -76,6 +78,14 @@ export async function registerMember(formData: FormData) {
   if (error) {
     console.error('Supabase User Creation Error:', error.message)
     return
+  }
+
+  // Update profile with major and dob
+  if (data?.user) {
+    await adminClient.from('profiles').update({ 
+      major: major, 
+      date_of_birth: dob ? dob : null 
+    }).eq('id', data.user.id)
   }
 
   try {
