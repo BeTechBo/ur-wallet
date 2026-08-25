@@ -2,6 +2,7 @@ import { ImageResponse } from "next/og";
 import { User, Star, Flame, HeartHandshake, Home, Book, Music } from "lucide-react";
 
 export const runtime = "edge";
+export const dynamic = "force-dynamic";
 
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params;

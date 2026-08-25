@@ -44,7 +44,7 @@ export const PointsEmail = ({
 
             <Section className="text-center w-full mb-6 mt-4">
               <Img 
-                src={`${siteUrl}/api/badge/${packageId}`} 
+                src={`${siteUrl}/api/badge/${packageId}?t=${Date.now()}`} 
                 width="140" 
                 height="140" 
                 alt={`${packageName} Badge`} 
