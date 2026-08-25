@@ -8,18 +8,19 @@ import Link from 'next/link';
 
 const NaqoosIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    {/* Left Cymbal */}
-    <path d="M5 14 C5 10 10 10 10 14 Z" fill="currentColor" stroke="none" />
-    <path d="M5 14 C5 10 10 10 10 14" strokeWidth="1.5" />
-    <line x1="7.5" y1="10" x2="6" y2="4" strokeWidth="2" />
+    {/* Cymbal (Left/Back) */}
+    <circle cx="9" cy="12" r="6" />
+    <circle cx="9" cy="12" r="2" />
+    {/* Strap */}
+    <path d="M5 12 C3 16, 8 18, 10.5 14 C12 11, 7 8, 5 12 Z" />
+
+    {/* Triangle (Right/Front) */}
+    <path d="M14 4 L6 20 L22 20 L18 12" />
+    <line x1="14" y1="4" x2="14" y2="1" />
     
-    {/* Right Cymbal */}
-    <path d="M14 14 C14 10 19 10 19 14 Z" fill="currentColor" stroke="none" />
-    <path d="M14 14 C14 10 19 10 19 14" strokeWidth="1.5" />
-    <line x1="16.5" y1="10" x2="18" y2="4" strokeWidth="2" />
-    
-    {/* Sound Waves / Clash */}
-    <path d="M12 11v5M9 16h6" strokeWidth="1.5" />
+    {/* Striker */}
+    <line x1="22" y1="9" x2="15" y2="16" strokeWidth="2" />
+    <line x1="23" y1="8" x2="21" y2="10" strokeWidth="3" />
   </svg>
 );
 
@@ -290,13 +291,16 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
                 return (
                   <div key={pkg.id} className={`relative flex flex-col items-center justify-center w-full max-w-[170px] aspect-square transition-all duration-300 ${isCollected ? 'hover:scale-105' : 'opacity-50 grayscale hover:opacity-80'}`}>
                     <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full drop-shadow-md">
-                      {/* Christmas Tree Shape */}
-                      <polygon points="50,5 35,35 42,35 25,65 35,65 15,95 85,95 65,65 75,65 58,35 65,35" fill="#c84b31" />
-                      <polygon points="50,11 38,33 44,33 28,63 36,63 19,92 81,92 64,63 72,63 56,33 62,33" fill="none" stroke="#FCF8F2" strokeWidth="1.5" />
+                      {/* Ornament Cap */}
+                      <rect x="42" y="5" width="16" height="10" fill="#a03c27" />
+                      <rect x="44" y="6" width="12" height="7" fill="none" stroke="#FCF8F2" strokeWidth="1.5" />
+                      {/* Ornament Bulb */}
+                      <circle cx="50" cy="55" r="42" fill="#c84b31" />
+                      <circle cx="50" cy="55" r="37" fill="none" stroke="#FCF8F2" strokeWidth="1.5" strokeDasharray="3 3" />
                     </svg>
-                    <div className="relative z-10 flex flex-col items-center justify-center text-center px-4 mt-12">
+                    <div className="relative z-10 flex flex-col items-center justify-center text-center px-4 mt-6">
                       <Star className="w-5 h-5 text-[#FCF8F2] mb-1" fill="#FCF8F2" />
-                      <span className="text-[#FCF8F2] font-black text-[10px] sm:text-[11px] tracking-widest uppercase leading-none mt-0.5">Christmas</span>
+                      <span className="text-[#FCF8F2] font-black text-[10px] sm:text-[11px] tracking-widest uppercase leading-none mt-1">Christmas</span>
                       <span className="text-[#FCF8F2] font-bold text-[8px] sm:text-[9px] tracking-wider uppercase opacity-90 mt-1">Major Event</span>
                       <div className="mt-2 bg-[#FCF8F2] text-[#c84b31] text-[8px] sm:text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest shadow-sm">
                         {count > 0 ? `${count}x Earned` : 'Locked'}
