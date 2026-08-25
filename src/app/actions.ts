@@ -59,7 +59,10 @@ export async function registerMember(formData: FormData) {
   const fullName = formData.get('fullName') as string
   const major = formData.get('major') as string
   const dob = formData.get('dob') as string
-  if (!email || !fullName || !major) return
+  
+  if (!email || !fullName || !major) {
+    throw new Error("Missing required fields: Email, Full Name, or Major.");
+  }
 
   const adminClient = createAdminClient()
   
@@ -77,7 +80,7 @@ export async function registerMember(formData: FormData) {
 
   if (error) {
     console.error('Supabase User Creation Error:', error.message)
-    return
+    throw new Error(`Supabase Error: ${error.message}. If you deleted this user previously, their old profile might still exist in the database and block re-registration.`);
   }
 
   // Update profile with major and dob
@@ -94,6 +97,7 @@ export async function registerMember(formData: FormData) {
     
     if (updateError) {
       console.error('Failed to update profile with major/dob:', updateError);
+      throw new Error(`Database Update Error: ${updateError.message}`);
     }
   }
 
