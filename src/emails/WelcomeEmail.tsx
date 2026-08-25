@@ -27,7 +27,7 @@ export const WelcomeEmail = ({
   return (
     <Html>
       <Head />
-      <Preview>Welcome to The Upper Room Family!</Preview>
+      <Preview>Your login credentials are inside!</Preview>
       <Tailwind>
         <Body className="bg-gray-50 font-sans my-auto mx-auto px-2 pt-5 pb-12">
           

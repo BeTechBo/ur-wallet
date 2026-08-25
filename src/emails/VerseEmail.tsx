@@ -27,13 +27,13 @@ export const VerseEmail = ({
   return (
     <Html>
       <Head />
-      <Preview>Echoes from the Upper Room</Preview>
+      <Preview>Here is your verse for today!</Preview>
       <Tailwind>
         <Body className="bg-[#FCF8F2] font-sans my-auto mx-auto pt-[40px]">
           
           <Container className="bg-white border border-[#E8DFD5] rounded-2xl mx-auto p-10 max-w-[500px] shadow-sm">
             <Text className="text-[#d88452] text-4xl text-center m-0 mb-4">
-              ✝
+              ✨
             </Text>
             <Heading className="text-[#324b4c] text-2xl font-bold text-center p-0 my-4 mx-0 tracking-tight">
               Echoes from the Upper Room
@@ -46,7 +46,7 @@ export const VerseEmail = ({
             </Text>
             
             <Section className="bg-[#FCF8F2] border border-[#E8DFD5] rounded-xl p-8 text-center my-6 shadow-sm">
-              <Text className="text-[#324b4c] text-xl font-bold leading-8 m-0 mb-4" dir="rtl">
+              <Text className="text-[#324b4c] text-3xl font-bold leading-10 m-0 mb-4" dir="rtl">
                 "{verseText}"
               </Text>
               <Text className="text-[#324b4c] text-sm font-bold m-0 opacity-80" dir="rtl">

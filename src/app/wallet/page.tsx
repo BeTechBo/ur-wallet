@@ -6,7 +6,7 @@ import { redirect } from 'next/navigation';
 import { PACKAGES } from '@/lib/packages';
 import Link from 'next/link';
 
-export default async function WalletPage({ searchParams }: { searchParams?: { tab?: string } }) {
+export default async function WalletPage(props: { searchParams?: Promise<{ tab?: string }> }) {
   const supabase = await createClient();
   const { data: authData } = await supabase.auth.getUser();
   
@@ -15,6 +15,7 @@ export default async function WalletPage({ searchParams }: { searchParams?: { ta
   }
 
   // Get current tab from search params or default to 'profile'
+  const searchParams = await props.searchParams;
   const currentTab = searchParams?.tab || 'profile';
 
   // Fetch transactions
@@ -307,10 +308,10 @@ export default async function WalletPage({ searchParams }: { searchParams?: { ta
               verses?.map((verse, idx) => (
                 <div key={idx} className="bg-background border border-secondary/40 rounded-xl p-8 text-center hover:shadow-md transition-shadow relative">
                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -mt-3 bg-[#FCF8F2] px-2 text-secondary text-xl">✝</div>
-                   <p className="text-lg text-foreground font-medium leading-loose mt-2" dir="rtl">
+                   <p className="text-2xl text-foreground font-medium leading-[1.6] mt-4" dir="rtl">
                     "{verse.verse_text}"
                    </p>
-                   <p className="text-xs text-secondary font-bold mt-6 tracking-wider">({verse.reference})</p>
+                   <p className="text-sm text-secondary font-bold mt-6 tracking-wider">({verse.reference})</p>
                 </div>
               ))
             )}
