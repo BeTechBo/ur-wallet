@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Cross, Instagram } from 'lucide-react';
+import { Cross } from 'lucide-react';
 
 export default function Navbar() {
   return (
@@ -29,7 +29,11 @@ export default function Navbar() {
               className="flex items-center gap-2 text-foreground/70 hover:text-primary transition-colors p-2 bg-gray-50 hover:bg-gray-100 rounded-full border border-gray-200"
               title="Follow us on Instagram"
             >
-              <Instagram className="w-5 h-5" />
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+              </svg>
             </a>
           </div>
         </div>

@@ -142,7 +142,7 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
       {currentTab === 'wallet' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* UR-Coins Card */}
-          <div className="md:col-span-1 bg-zakhrafa text-foreground rounded-2xl p-6 border border-secondary/30 shadow-sm relative overflow-hidden flex flex-col items-center justify-center min-h-[300px]">
+          <div className="md:col-span-1 self-start bg-zakhrafa text-foreground rounded-2xl p-6 border border-secondary/30 shadow-sm relative overflow-hidden flex flex-col items-center justify-center min-h-[300px]">
             <div className="absolute bottom-0 left-0 -ml-2 mb-[-20px] opacity-90 scale-75 origin-bottom-left">
               <AnimatedWallet />
             </div>
