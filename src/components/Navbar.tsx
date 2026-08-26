@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Cross } from 'lucide-react';
+import { Cross, Instagram } from 'lucide-react';
 
 export default function Navbar() {
   return (
@@ -21,7 +21,17 @@ export default function Navbar() {
             </div>
           </Link>
           
-          {/* We will add navigation links here depending on if user is admin/normal */}
+          <div className="flex items-center gap-4">
+            <a 
+              href="https://www.instagram.com/the_upper_room_gathering" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-foreground/70 hover:text-primary transition-colors p-2 bg-gray-50 hover:bg-gray-100 rounded-full border border-gray-200"
+              title="Follow us on Instagram"
+            >
+              <Instagram className="w-5 h-5" />
+            </a>
+          </div>
         </div>
       </div>
     </nav>
