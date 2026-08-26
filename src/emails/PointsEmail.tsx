@@ -18,7 +18,7 @@ export const PointsEmail = ({
   walletUrl = "https://urwallet.vercel.app/wallet",
   siteUrl = "https://urwallet.vercel.app",
 }: PointsEmailProps) => {
-  const previewText = `You received the ${packageName}!`;
+  const previewText = `Open to see your new reward inside!`;
 
   return (
     <Html>
