@@ -114,6 +114,27 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
         <polygon points="50,11 84,29 84,62 50,88 16,62 16,29" fill="none" stroke="#FCF8F2" strokeWidth="1.5" />
       </svg>
     );
+  } else if (id === "other") {
+    title = "REWARD"; subtitle = "CUSTOM POINTS";
+    icon = (
+      <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#FCF8F2" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="8"></circle>
+        <line x1="12" y1="8" x2="12" y2="16"></line>
+        <line x1="8" y1="12" x2="16" y2="12"></line>
+      </svg>
+    );
+    svgContent = (
+      <svg viewBox="0 0 100 100" width="100%" height="100%" style={{ position: "absolute", top: 0, left: 0 }}>
+        <circle cx="50" cy="50" r="48" fill="#52525b" />
+        <circle cx="50" cy="50" r="43" fill="none" stroke="#FCF8F2" strokeWidth="1.5" strokeDasharray="4 4" />
+      </svg>
+    );
+  } else {
+    svgContent = (
+      <svg viewBox="0 0 100 100" width="100%" height="100%" style={{ position: "absolute", top: 0, left: 0 }}>
+        <circle cx="50" cy="50" r="48" fill="#cbd5e1" />
+      </svg>
+    );
   }
 
   return new ImageResponse(

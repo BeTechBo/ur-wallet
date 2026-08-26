@@ -117,49 +117,67 @@ export async function registerMember(formData: FormData) {
 
 // AWARD UR-COINS
 export async function awardCoins(formData: FormData) {
-  const userId = formData.get('userId') as string
+  const userIds = formData.getAll('userIds') as string[]
   const packageId = formData.get('packageId') as string
   
-  if (!userId || !packageId) return
+  if (!userIds || userIds.length === 0 || !packageId) return
 
-  const pkg = PACKAGES[packageId as keyof typeof PACKAGES]
-  if (!pkg) return
+  let pkg: { id: string, name: string, reason: string, points: number }
+
+  if (packageId === 'other') {
+    const customReason = formData.get('customReason') as string
+    const customPoints = parseInt(formData.get('customPoints') as string || '0', 10)
+    if (!customReason || customPoints <= 0) return
+    
+    pkg = {
+      id: 'other',
+      name: 'Custom Points',
+      reason: customReason,
+      points: customPoints
+    }
+  } else {
+    const foundPkg = PACKAGES[packageId as keyof typeof PACKAGES]
+    if (!foundPkg) return
+    pkg = foundPkg
+  }
 
   const adminClient = createAdminClient()
   
-  const { error } = await adminClient.from('transactions').insert({
-    user_id: userId,
-    points_added: pkg.points,
-    event_name: pkg.name
-  })
+  for (const userId of userIds) {
+    const { error } = await adminClient.from('transactions').insert({
+      user_id: userId,
+      points_added: pkg.points,
+      event_name: pkg.name
+    })
 
-  if (error) {
-    console.error(error.message)
-    return
-  }
+    if (error) {
+      console.error(`Failed to award coins to ${userId}:`, error.message)
+      continue
+    }
 
-  // Fetch the user's email to notify them
-  const { data: profile } = await adminClient.from('profiles').select('email').eq('id', userId).single()
+    // Fetch the user's email to notify them
+    const { data: profile } = await adminClient.from('profiles').select('email').eq('id', userId).single()
 
-  if (profile?.email) {
-    try {
-      const htmlStr = await render(PointsEmail({ 
-        packageId: pkg.id,
-        packageName: pkg.name,
-        reason: pkg.reason,
-        pointsAdded: pkg.points, 
-        walletUrl: `${siteUrl}/wallet`,
-        siteUrl: siteUrl
-      }) as React.ReactElement)
-      
-      await transporter.sendMail({
-        from: `"The Upper Room" <${process.env.GMAIL_USER}>`,
-        to: profile.email,
-        subject: `You received the ${pkg.name}!`,
-        html: htmlStr,
-      })
-    } catch (err) {
-      console.error('Failed to send coins email:', err)
+    if (profile?.email) {
+      try {
+        const htmlStr = await render(PointsEmail({ 
+          packageId: pkg.id,
+          packageName: pkg.name,
+          reason: pkg.reason,
+          pointsAdded: pkg.points, 
+          walletUrl: `${siteUrl}/wallet`,
+          siteUrl: siteUrl
+        }) as React.ReactElement)
+        
+        await transporter.sendMail({
+          from: `"The Upper Room" <${process.env.GMAIL_USER}>`,
+          to: profile.email,
+          subject: pkg.id === 'other' ? `You received ${pkg.points} UR-Coins!` : `You received the ${pkg.name}!`,
+          html: htmlStr,
+        })
+      } catch (err) {
+        console.error('Failed to send coins email:', err)
+      }
     }
   }
 
