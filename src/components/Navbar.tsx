@@ -16,7 +16,7 @@ export default function Navbar() {
                 The Upper Room
               </span>
               <span className="text-xs text-primary font-medium tracking-widest uppercase">
-                UR Wallet
+                AUC dorms Community
               </span>
             </div>
           </Link>
@@ -26,7 +26,7 @@ export default function Navbar() {
               href="https://www.instagram.com/the_upper_room_gathering" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="flex items-center gap-2 text-foreground/70 hover:text-primary transition-colors p-2 bg-gray-50 hover:bg-gray-100 rounded-full border border-gray-200"
+              className="flex items-center gap-2 text-purple-600 hover:text-purple-700 transition-colors p-2 bg-purple-50 hover:bg-purple-100 rounded-full border border-purple-200"
               title="Follow us on Instagram"
             >
               <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
