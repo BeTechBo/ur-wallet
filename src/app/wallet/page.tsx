@@ -2,6 +2,7 @@ import { Trophy, History, BookOpen, Music, Book, Home, HeartHandshake, Package, 
 import AnimatedWallet from '@/components/AnimatedWallet';
 import URCoin from '@/components/URCoin';
 import { createClient } from '@/utils/supabase/server';
+import { createAdminClient } from '@/utils/supabase/admin';
 import { redirect } from 'next/navigation';
 import { PACKAGES } from '@/lib/packages';
 import Link from 'next/link';
@@ -58,14 +59,33 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
     .eq('user_id', authData.user.id);
 
   // Calculate Rank
-  const { data: allTxs } = await supabase.from('transactions').select('user_id, points_added');
+  const adminClient = createAdminClient();
+  const { data: allTxs } = await adminClient.from('transactions').select('user_id, points_added');
   const userTotals: Record<string, number> = {};
   allTxs?.forEach(tx => {
     userTotals[tx.user_id] = (userTotals[tx.user_id] || 0) + tx.points_added;
   });
   
+  // Ensure the current user's score is explicitly in the set even if they have 0 transactions
+  userTotals[authData.user.id] = totalCoins;
+  
   const uniqueScores = Array.from(new Set(Object.values(userTotals))).sort((a, b) => b - a);
   const myRank = uniqueScores.indexOf(totalCoins) + 1;
+
+  // Determine Rank Color
+  let rankColorClass = "text-secondary";
+  let rankStrokeColor = "var(--secondary)"; // Rank 3/Default
+  
+  if (myRank === 1) {
+    rankColorClass = "text-[#1e3a8a]";
+    rankStrokeColor = "#1e3a8a"; // Dark blue
+  } else if (myRank === 2) {
+    rankColorClass = "text-primary";
+    rankStrokeColor = "var(--primary)"; // Green
+  } else if (myRank > 3) {
+    rankColorClass = "text-[#c84b31]";
+    rankStrokeColor = "#c84b31"; // Red
+  }
 
   // Fetch Profile securely and gracefully
   const { data: profile } = await supabase.from('profiles').select('*').eq('id', authData.user.id).single();
@@ -149,7 +169,7 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
             
             <div className="relative z-20 w-48 h-48 mt-4">
                <svg className="w-full h-full" viewBox="0 0 100 100">
-                 <circle cx="50" cy="50" r="42" stroke="var(--secondary)" strokeWidth="6" fill="none" className="text-secondary" />
+                 <circle cx="50" cy="50" r="42" stroke={rankStrokeColor} strokeWidth="6" fill="none" />
                </svg>
                <div className="absolute inset-0 flex flex-col items-center justify-center text-center mt-1">
                  <span className="text-[9px] uppercase tracking-widest font-bold opacity-80 mb-1">Total</span>

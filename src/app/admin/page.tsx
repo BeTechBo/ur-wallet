@@ -1,4 +1,4 @@
-import { Users, Coins, Mail, Plus } from 'lucide-react';
+import { Users, Coins, Mail, Plus, Trophy } from 'lucide-react';
 import { registerMember, awardCoins, distributeVerses } from '@/app/actions';
 import { createAdminClient } from '@/utils/supabase/admin';
 import AwardForm from './AwardForm';
@@ -6,9 +6,36 @@ import AwardForm from './AwardForm';
 export default async function AdminDashboard(props: { searchParams?: Promise<{ error?: string }> }) {
   const adminClient = createAdminClient();
   const { data: users } = await adminClient.from('profiles').select('id, email, full_name').eq('role', 'user');
+  const { data: allTransactions } = await adminClient.from('transactions').select('user_id, points_added, event_name');
 
   const searchParams = await props.searchParams;
   const errorMsg = searchParams?.error;
+
+  type LeaderboardEntry = {
+    userId: string;
+    name: string;
+    totalCoins: number;
+    badges: Set<string>;
+  };
+
+  const leaderboardMap = new Map<string, LeaderboardEntry>();
+  
+  users?.forEach(u => {
+    leaderboardMap.set(u.id, { userId: u.id, name: u.full_name || u.email, totalCoins: 0, badges: new Set() });
+  });
+
+  allTransactions?.forEach(tx => {
+    if (leaderboardMap.has(tx.user_id)) {
+      const entry = leaderboardMap.get(tx.user_id)!;
+      entry.totalCoins += tx.points_added;
+      if (tx.event_name && tx.event_name !== 'Custom Points' && !tx.event_name.toLowerCase().includes('verse')) {
+        entry.badges.add(tx.event_name);
+      }
+    }
+  });
+
+  const leaderboard = Array.from(leaderboardMap.values()).sort((a, b) => b.totalCoins - a.totalCoins);
+  const uniqueScores = Array.from(new Set(leaderboard.map(u => u.totalCoins))).sort((a, b) => b - a);
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -72,7 +99,7 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
             Picks 3 unsent verses from your collection. Every member of the family will randomly receive 1 of these 3 verses.
           </p>
           <div className="bg-background border border-secondary/40 rounded-xl p-6 mb-6 text-center flex-1 flex flex-col justify-center items-center relative">
-             <div className="absolute top-0 left-1/2 -translate-x-1/2 -mt-3 bg-white px-2 text-secondary text-xl">✝</div>
+             <div className="absolute top-0 left-1/2 -translate-x-1/2 -mt-3 bg-white px-2 text-secondary text-xl">🕊️</div>
              <p className="text-sm text-foreground font-medium mt-2">
               Ready to distribute 3 random verses to the family!
              </p>
@@ -84,6 +111,59 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
           </form>
         </div>
 
+      </div>
+      
+      {/* Leaderboard Section */}
+      <div className="mt-8 bg-white rounded-2xl p-8 border border-secondary/30 shadow-sm">
+        <div className="flex items-center gap-3 mb-6 border-b border-gray-100 pb-4">
+          <Trophy className="w-5 h-5 text-secondary" />
+          <h2 className="font-bold text-xl text-foreground">Community Leaderboard</h2>
+        </div>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-gray-100">
+                <th className="py-4 px-4 text-[11px] font-bold text-foreground/50 uppercase tracking-widest w-16">Rank</th>
+                <th className="py-4 px-4 text-[11px] font-bold text-foreground/50 uppercase tracking-widest">Name</th>
+                <th className="py-4 px-4 text-[11px] font-bold text-foreground/50 uppercase tracking-widest text-right">Coins</th>
+                <th className="py-4 px-4 text-[11px] font-bold text-foreground/50 uppercase tracking-widest">Badges</th>
+              </tr>
+            </thead>
+            <tbody>
+              {leaderboard.map((user) => {
+                const userRank = uniqueScores.indexOf(user.totalCoins) + 1;
+                return (
+                <tr key={user.userId} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                  <td className="py-4 px-4 font-bold text-foreground/50">#{userRank}</td>
+                  <td className="py-4 px-4 font-bold text-foreground">{user.name}</td>
+                  <td className="py-4 px-4 font-black text-secondary text-right">{user.totalCoins}</td>
+                  <td className="py-4 px-4 text-xs font-medium text-foreground/70">
+                    {user.badges.size > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {Array.from(user.badges).map(badge => (
+                          <span key={badge} className="bg-secondary/10 text-secondary px-2 py-1 rounded-md text-[10px] uppercase tracking-wider font-bold">
+                            {badge}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="opacity-50">—</span>
+                    )}
+                  </td>
+                </tr>
+                );
+              })}
+              {leaderboard.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="py-8 text-center text-foreground/50 text-sm">
+                    No members have earned points yet.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
