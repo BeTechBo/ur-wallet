@@ -73,8 +73,9 @@ export const VerseEmail = ({
             </Text>
           </Container>
           
-          <Container className="mx-auto w-[500px] bg-[#E8DFD5]/30 rounded-b-lg p-6 text-center border-t border-[#E8DFD5]">
-            <Text className="text-[#324b4c] text-sm font-bold m-0">The Upper Room</Text>
+          <Container className="mx-auto w-[500px] bg-[#324b4c] rounded-b-xl p-8 text-center mt-2 shadow-md border-t-4 border-[#d88452]">
+            <Text className="text-[#FCF8F2] text-xl font-black m-0 tracking-[0.15em] uppercase">The Upper Room</Text>
+            <Text className="text-[#d88452] text-[10px] font-bold uppercase tracking-[0.3em] mt-2 mb-0">Community Wallet</Text>
           </Container>
 
         </Body>
