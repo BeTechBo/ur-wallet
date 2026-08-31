@@ -188,12 +188,8 @@ export async function awardCoins(formData: FormData) {
 export async function distributeVerses() {
   const adminClient = createAdminClient()
   
-  const { data: sentVersesData } = await adminClient.from('verses').select('verse_text')
-  const sentTexts = new Set(sentVersesData?.map(v => v.verse_text) || [])
-  
-  const unsentVerses = versesData.filter(v => !sentTexts.has(v.text))
-  
-  const selectedVerses = unsentVerses.sort(() => 0.5 - Math.random()).slice(0, 3)
+  // Pick 3 random verses from the full list (allow previously-sent verses)
+  const selectedVerses = [...versesData].sort(() => 0.5 - Math.random()).slice(0, 3)
   if (selectedVerses.length === 0) return
   
   const { data: users } = await adminClient.from('profiles').select('id, email')
@@ -202,12 +198,24 @@ export async function distributeVerses() {
   for (const user of users) {
      const randomVerse = selectedVerses[Math.floor(Math.random() * selectedVerses.length)]
      
-     await adminClient.from('verses').insert({
-       user_id: user.id,
-       verse_text: randomVerse.text,
-       reference: randomVerse.reference
-     })
+     // Check if this specific user already has this verse in their dashboard
+     const { data: existingVerse } = await adminClient
+       .from('verses')
+       .select('id')
+       .eq('user_id', user.id)
+       .eq('verse_text', randomVerse.text)
+       .maybeSingle()
      
+     // Only add it to their dashboard if they don't already have it
+     if (!existingVerse) {
+       await adminClient.from('verses').insert({
+         user_id: user.id,
+         verse_text: randomVerse.text,
+         reference: randomVerse.reference
+       })
+     }
+     
+     // Always send the email, even if they already have it in the dashboard
      try {
        const htmlStr = await render(VerseEmail({ 
          verseText: randomVerse.text, 
