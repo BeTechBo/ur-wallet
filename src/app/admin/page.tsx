@@ -96,15 +96,27 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
             <h2 className="font-bold text-lg text-foreground">Distribute Verses</h2>
           </div>
           <p className="text-xs text-foreground/60 mb-6 leading-relaxed">
-            Picks 3 unsent verses from your collection. Every member of the family will randomly receive 1 of these 3 verses.
+            Sends a completely randomized verse from your collection to everyone, or to a specific targeted member.
           </p>
           <div className="bg-background border border-secondary/40 rounded-xl p-6 mb-6 text-center flex-1 flex flex-col justify-center items-center relative">
              <div className="absolute top-0 left-1/2 -translate-x-1/2 -mt-3 bg-white px-2 text-secondary text-xl">🕊️</div>
              <p className="text-sm text-foreground font-medium mt-2">
-              Ready to distribute 3 random verses to the family!
+              Ready to send a randomized verse of the day!
              </p>
           </div>
-          <form action={distributeVerses}>
+          <form action={distributeVerses} className="space-y-4">
+            <div>
+              <label className="block text-[11px] font-bold text-foreground/50 uppercase tracking-widest mb-2">Select Target</label>
+              <select 
+                name="userId" 
+                className="w-full px-4 py-2 border border-secondary/30 rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary text-sm bg-gray-50 outline-none transition-all"
+              >
+                <option value="all">Everyone (All Members)</option>
+                {users?.map(u => (
+                  <option key={u.id} value={u.id}>{u.full_name || u.email}</option>
+                ))}
+              </select>
+            </div>
             <button type="submit" className="w-full border-2 border-secondary text-secondary py-3 rounded-xl text-sm font-bold hover:bg-secondary hover:text-white transition-colors cursor-pointer">
               Randomize & Send Emails
             </button>

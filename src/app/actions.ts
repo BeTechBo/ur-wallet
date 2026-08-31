@@ -185,14 +185,21 @@ export async function awardCoins(formData: FormData) {
 }
 
 // DISTRIBUTE VERSES
-export async function distributeVerses() {
+export async function distributeVerses(formData?: FormData) {
   const adminClient = createAdminClient()
+  
+  const targetUserId = formData?.get('userId') as string;
   
   // Pick 3 random verses from the full list (allow previously-sent verses)
   const selectedVerses = [...versesData].sort(() => 0.5 - Math.random()).slice(0, 3)
   if (selectedVerses.length === 0) return
   
-  const { data: users } = await adminClient.from('profiles').select('id, email')
+  let usersQuery = adminClient.from('profiles').select('id, email').eq('role', 'user');
+  if (targetUserId && targetUserId !== 'all') {
+     usersQuery = usersQuery.eq('id', targetUserId);
+  }
+  
+  const { data: users } = await usersQuery;
   if (!users || users.length === 0) return
   
   for (const user of users) {
