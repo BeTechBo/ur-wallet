@@ -190,9 +190,7 @@ export async function distributeVerses(formData?: FormData) {
   
   const targetUserId = formData?.get('userId') as string;
   
-  // Pick 3 random verses from the full list (allow previously-sent verses)
-  const selectedVerses = [...versesData].sort(() => 0.5 - Math.random()).slice(0, 3)
-  if (selectedVerses.length === 0) return
+  if (versesData.length === 0) return;
   
   let usersQuery = adminClient.from('profiles').select('id, email').eq('role', 'user');
   if (targetUserId && targetUserId !== 'all') {
@@ -203,7 +201,8 @@ export async function distributeVerses(formData?: FormData) {
   if (!users || users.length === 0) return
   
   for (const user of users) {
-     const randomVerse = selectedVerses[Math.floor(Math.random() * selectedVerses.length)]
+     // Pick a completely random verse from the full list for THIS specific user
+     const randomVerse = versesData[Math.floor(Math.random() * versesData.length)];
      
      // Check if this specific user already has this verse in their dashboard
      const { data: existingVerse } = await adminClient
