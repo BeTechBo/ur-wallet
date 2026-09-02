@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Coins, Plus } from "lucide-react";
 import { awardCoins } from "@/app/actions";
+import { SubmitButton } from "@/components/SubmitButton";
 
 export default function AwardForm({ users }: { users: { id: string, email: string, full_name: string }[] }) {
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
@@ -97,13 +98,14 @@ export default function AwardForm({ users }: { users: { id: string, email: strin
           </div>
         )}
 
-        <button 
-          type="submit" 
+        <SubmitButton 
+          loadingText="Awarding..."
           disabled={selectedUsers.size === 0 || !packageId}
-          className="w-full bg-primary text-white py-3 rounded-xl text-sm font-bold hover:bg-primary/90 transition-colors shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-primary text-white py-3 rounded-xl text-sm font-bold hover:bg-primary/90 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          icon={<Plus className="w-4 h-4" />}
         >
-          <Plus className="w-4 h-4" /> Award {selectedUsers.size > 1 ? `(${selectedUsers.size} Members)` : "Package"}
-        </button>
+          Award {selectedUsers.size > 1 ? `(${selectedUsers.size} Members)` : "Package"}
+        </SubmitButton>
       </form>
     </div>
   );

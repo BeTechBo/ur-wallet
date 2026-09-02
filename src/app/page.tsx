@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { Cross } from 'lucide-react';
 import { login } from '@/app/actions';
 
+import { SubmitButton } from '@/components/SubmitButton';
+
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -65,12 +67,12 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <button
-                type="submit"
+              <SubmitButton
+                loadingText="Signing in..."
                 className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
               >
                 Sign in to your Wallet
-              </button>
+              </SubmitButton>
             </div>
           </form>
         </div>

@@ -1,7 +1,8 @@
 import { Users, Coins, Mail, Plus, Trophy } from 'lucide-react';
-import { registerMember, awardCoins, distributeVerses } from '@/app/actions';
+import { registerMember, distributeVerses } from '@/app/actions';
 import { createAdminClient } from '@/utils/supabase/admin';
 import AwardForm from './AwardForm';
+import { SubmitButton } from '@/components/SubmitButton';
 
 export default async function AdminDashboard(props: { searchParams?: Promise<{ error?: string }> }) {
   const adminClient = createAdminClient();
@@ -80,9 +81,9 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
                 <input name="dob" type="date" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm bg-gray-50 outline-none transition-all text-foreground/70" />
               </div>
             </div>
-            <button type="submit" className="w-full bg-foreground text-white py-3 rounded-xl text-sm font-bold hover:bg-foreground/90 transition-colors shadow-sm">
+            <SubmitButton loadingText="Adding..." className="w-full bg-foreground text-white py-3 rounded-xl text-sm font-bold hover:bg-foreground/90 transition-colors shadow-sm">
               Add Member & Send Email
-            </button>
+            </SubmitButton>
           </form>
         </div>
 
@@ -117,9 +118,9 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
                 ))}
               </select>
             </div>
-            <button type="submit" className="w-full border-2 border-secondary text-secondary py-3 rounded-xl text-sm font-bold hover:bg-secondary hover:text-white transition-colors cursor-pointer">
+            <SubmitButton loadingText="Distributing..." className="w-full border-2 border-secondary text-secondary py-3 rounded-xl text-sm font-bold hover:bg-secondary hover:text-white transition-colors cursor-pointer">
               Randomize & Send Emails
-            </button>
+            </SubmitButton>
           </form>
         </div>
 
