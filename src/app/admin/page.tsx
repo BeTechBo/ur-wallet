@@ -96,12 +96,12 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
             <h2 className="font-bold text-lg text-foreground">Distribute Verses</h2>
           </div>
           <p className="text-xs text-foreground/60 mb-6 leading-relaxed">
-            Sends a completely randomized verse from your collection to everyone, or to a specific targeted member.
+            Picks a daily pool of 10 random verses from your collection, then distributes 1 to everyone, or sends 1 to a specific targeted member.
           </p>
           <div className="bg-background border border-secondary/40 rounded-xl p-6 mb-6 text-center flex-1 flex flex-col justify-center items-center relative">
              <div className="absolute top-0 left-1/2 -translate-x-1/2 -mt-3 bg-white px-2 text-secondary text-xl">🕊️</div>
              <p className="text-sm text-foreground font-medium mt-2">
-              Ready to send a randomized verse of the day!
+              Ready to distribute 10 random verses to the family!
              </p>
           </div>
           <form action={distributeVerses} className="space-y-4">
