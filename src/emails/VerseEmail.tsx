@@ -16,12 +16,16 @@ import * as React from "react";
 interface VerseEmailProps {
   verseText?: string;
   verseReference?: string;
+  englishVerseText?: string;
+  englishVerseReference?: string;
   walletUrl?: string;
 }
 
 export const VerseEmail = ({
-  verseText = "“أَنْتُمْ نُورُ الْعَالَمِ. لاَ يُمْكِنُ أَنْ تُخْفَى مَدِينَةٌ مَوْضُوعَةٌ عَلَى جَبَل” (مت 5: 14).",
+  verseText = "أَنْتُمْ نُورُ الْعَالَمِ. لاَ يُمْكِنُ أَنْ تُخْفَى مَدِينَةٌ مَوْضُوعَةٌ عَلَى جَبَل",
   verseReference = "مت 5: 14",
+  englishVerseText = "You are the light of the world. A city located on a hill can't be hidden.",
+  englishVerseReference = "Matthew 5:14",
   walletUrl = "https://urwallet.vercel.app/wallet",
 }: VerseEmailProps) => {
   return (
@@ -33,7 +37,7 @@ export const VerseEmail = ({
           
           <Container className="bg-white border border-[#E8DFD5] rounded-2xl mx-auto p-10 max-w-[500px] shadow-sm">
             <Text className="text-[#d88452] text-4xl text-center m-0 mb-4">
-              ✨
+              🕊️
             </Text>
             <Heading className="text-[#324b4c] text-2xl font-bold text-center p-0 my-4 mx-0 tracking-tight">
               Echoes from the Upper Room
@@ -41,16 +45,24 @@ export const VerseEmail = ({
             <Text className="text-[#324b4c]/80 text-base leading-6 mt-6">
               Good Morning Dear,
             </Text>
-            <Text className="text-[#324b4c]/80 text-base leading-6">
-              Here is your verse for today:
-            </Text>
-            
-            <Section className="bg-[#FCF8F2] border border-[#E8DFD5] rounded-xl p-8 text-center my-6 shadow-sm">
-              <Text className="text-[#324b4c] text-3xl font-bold leading-10 m-0 mb-4" dir="rtl">
+
+            <Section className="bg-[#FCF8F2] rounded-xl p-8 my-8 border border-[#E8DFD5]/50 text-center">
+              {/* Arabic Verse */}
+              <Text className="text-[#324b4c] text-[22px] leading-[38px] font-medium m-0 mb-3" dir="rtl">
                 "{verseText}"
               </Text>
               <Text className="text-[#324b4c] text-sm font-bold m-0 opacity-80" dir="rtl">
                 - {verseReference} -
+              </Text>
+              
+              <Hr className="border border-solid border-[#d88452]/30 w-1/2 mx-auto my-6" />
+              
+              {/* English Verse */}
+              <Text className="text-[#324b4c] text-[18px] leading-[28px] font-medium m-0 mb-3 italic">
+                "{englishVerseText}"
+              </Text>
+              <Text className="text-[#324b4c] text-xs font-bold m-0 opacity-80 uppercase tracking-widest">
+                - {englishVerseReference} -
               </Text>
             </Section>
 

@@ -226,10 +226,12 @@ export async function distributeVerses(formData?: FormData) {
      // Always send the email, even if they already have it in the dashboard
      try {
        const htmlStr = await render(VerseEmail({ 
-         verseText: randomVerse.text, 
-         verseReference: randomVerse.reference,
-         walletUrl: `${siteUrl}/wallet` 
-       }) as React.ReactElement)
+        verseText: randomVerse.text, 
+        verseReference: randomVerse.reference,
+        englishVerseText: randomVerse.english_text,
+        englishVerseReference: randomVerse.english_reference,
+        walletUrl: `${siteUrl}/wallet` 
+      }) as React.ReactElement)
        await transporter.sendMail({
          from: `"The Upper Room" <${process.env.GMAIL_USER}>`,
          to: user.email,
