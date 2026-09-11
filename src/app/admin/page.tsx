@@ -2,12 +2,14 @@ import { Users, Coins, Mail, Plus, Trophy } from 'lucide-react';
 import { registerMember, distributeVerses } from '@/app/actions';
 import { createAdminClient } from '@/utils/supabase/admin';
 import AwardForm from './AwardForm';
+import AdminSchedule from './AdminSchedule';
 import { SubmitButton } from '@/components/SubmitButton';
 
 export default async function AdminDashboard(props: { searchParams?: Promise<{ error?: string }> }) {
   const adminClient = createAdminClient();
   const { data: users } = await adminClient.from('profiles').select('id, email, full_name').eq('role', 'user');
   const { data: allTransactions } = await adminClient.from('transactions').select('user_id, points_added, event_name');
+  const { data: events } = await adminClient.from('events').select('*');
 
   const searchParams = await props.searchParams;
   const errorMsg = searchParams?.error;
@@ -126,6 +128,10 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
 
       </div>
       
+      <div className="mt-8">
+        <AdminSchedule initialEvents={events || []} />
+      </div>
+
       {/* Leaderboard Section */}
       <div className="mt-8 bg-white rounded-2xl p-8 border border-secondary/30 shadow-sm">
         <div className="flex items-center gap-3 mb-6 border-b border-gray-100 pb-4">

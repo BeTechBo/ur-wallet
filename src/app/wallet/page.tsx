@@ -1,4 +1,4 @@
-import { Trophy, History, BookOpen, Music, Book, Home, HeartHandshake, Package, Flame, Star, User } from 'lucide-react';
+import { Trophy, History, BookOpen, Music, Book, Home, HeartHandshake, Package, Flame, Star, User, Calendar } from 'lucide-react';
 import AnimatedWallet from '@/components/AnimatedWallet';
 import URCoin from '@/components/URCoin';
 import { createClient } from '@/utils/supabase/server';
@@ -6,6 +6,7 @@ import { createAdminClient } from '@/utils/supabase/admin';
 import { redirect } from 'next/navigation';
 import { PACKAGES } from '@/lib/packages';
 import Link from 'next/link';
+import ScheduleView from './ScheduleView';
 
 const NaqoosIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -118,7 +119,8 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
           { id: 'profile', label: 'Profile', icon: User },
           { id: 'wallet', label: 'UR Wallet', icon: Trophy },
           { id: 'verses', label: 'Verses Collected', icon: BookOpen },
-          { id: 'badges', label: 'Badges', icon: Package }
+          { id: 'badges', label: 'Badges', icon: Package },
+          { id: 'schedule', label: 'Schedule', icon: Calendar }
         ].map(tab => {
           const isActive = currentTab === tab.id;
           const Icon = tab.icon;
@@ -381,6 +383,10 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
             )}
           </div>
         </div>
+      )}
+
+      {currentTab === 'schedule' && (
+        <ScheduleView />
       )}
     </div>
   );

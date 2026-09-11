@@ -273,3 +273,40 @@ export async function updateMyProfile(formData: FormData) {
   revalidatePath('/wallet')
 }
 
+
+export async function saveEvent(formData: FormData) {
+  const adminClient = createAdminClient()
+  
+  const id = formData.get('id') as string;
+  const title = formData.get('title') as string;
+  const location = formData.get('location') as string;
+  const day_of_week = parseInt(formData.get('day_of_week') as string);
+  const start_time = formData.get('start_time') as string;
+  const end_time = formData.get('end_time') as string || null;
+  const valid_until = formData.get('valid_until') as string || null;
+  const is_recurring = formData.get('is_recurring') === 'on';
+
+  const eventData = {
+    title, location, day_of_week, start_time, end_time, valid_until, is_recurring
+  };
+
+  if (id) {
+    await adminClient.from('events').update(eventData).eq('id', id);
+  } else {
+    await adminClient.from('events').insert(eventData);
+  }
+
+  revalidatePath('/admin');
+  revalidatePath('/wallet');
+}
+
+export async function deleteEvent(formData: FormData) {
+  const adminClient = createAdminClient()
+  const id = formData.get('id') as string;
+  if (id) {
+    await adminClient.from('events').delete().eq('id', id);
+  }
+  revalidatePath('/admin');
+  revalidatePath('/wallet');
+}
+
