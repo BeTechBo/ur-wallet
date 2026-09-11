@@ -68,7 +68,7 @@ export default function AdminSchedule({ initialEvents }: { initialEvents: Schedu
                 </div>
 
                 <div className="flex items-center gap-2 mt-4 md:col-span-2">
-                  <SubmitButton label="Save Changes" loadingLabel="Saving..." className="bg-primary text-white" />
+                  <SubmitButton loadingText="Saving..." className="bg-primary text-white">Save Changes</SubmitButton>
                   <button type="button" onClick={() => setEditingId(null)} className="px-4 py-2 text-sm font-bold text-gray-500 hover:text-gray-700">Cancel</button>
                 </div>
               </form>
@@ -141,7 +141,7 @@ export default function AdminSchedule({ initialEvents }: { initialEvents: Schedu
             </div>
 
             <div className="flex items-center gap-2 mt-4 md:col-span-2">
-              <SubmitButton label="Create Event" loadingLabel="Creating..." className="bg-primary text-white" />
+              <SubmitButton loadingText="Creating..." className="bg-primary text-white">Create Event</SubmitButton>
               <button type="button" onClick={() => setEditingId(null)} className="px-4 py-2 text-sm font-bold text-gray-500 hover:text-gray-700">Cancel</button>
             </div>
           </form>
