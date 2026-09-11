@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ChevronLeft, ChevronRight, MapPin, Clock, Calendar as CalendarIcon } from 'lucide-react';
-import { createClient } from '@/utils/supabase/client';
 
 export type ScheduleEvent = {
   id: string;
@@ -15,7 +14,7 @@ export type ScheduleEvent = {
   is_recurring: boolean;
 };
 
-// Fallback hardcoded events until the DB table is created
+// Fallback hardcoded events if DB empty
 const DEFAULT_EVENTS: ScheduleEvent[] = [
   {
     id: '1',
@@ -49,27 +48,9 @@ const DEFAULT_EVENTS: ScheduleEvent[] = [
   }
 ];
 
-export default function ScheduleView() {
+export default function ScheduleView({ initialEvents }: { initialEvents: ScheduleEvent[] }) {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [events, setEvents] = useState<ScheduleEvent[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const supabase = createClient();
-        const { data, error } = await supabase.from('events').select('*');
-        if (error) throw error;
-        setEvents(data || []);
-      } catch (err) {
-        console.log("Could not fetch events from DB, using fallback defaults.", err);
-        setEvents(DEFAULT_EVENTS);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchEvents();
-  }, []);
+  const events = initialEvents && initialEvents.length > 0 ? initialEvents : DEFAULT_EVENTS;
 
   // Helper functions for dates
   const getStartOfWeek = (d: Date) => {
@@ -156,59 +137,55 @@ export default function ScheduleView() {
 
       {/* Events List */}
       <div className="space-y-8">
-        {loading ? (
-          <div className="text-center py-10 opacity-50 animate-pulse">Loading schedule...</div>
-        ) : (
-          weekDays.map((date, i) => {
-            const dayEvents = getEventsForDate(date);
-            const isToday = new Date().toDateString() === date.toDateString();
-            
-            if (dayEvents.length === 0) return null;
+        {weekDays.map((date, i) => {
+          const dayEvents = getEventsForDate(date);
+          const isToday = new Date().toDateString() === date.toDateString();
+          
+          if (dayEvents.length === 0) return null;
 
-            return (
-              <div key={i} className="relative">
-                <div className="sticky top-0 bg-white z-10 py-2 mb-3 border-b border-gray-100 flex items-center gap-2">
-                  <h4 className={`text-sm font-bold uppercase tracking-widest ${isToday ? 'text-primary' : 'text-gray-500'}`}>
-                    {date.toLocaleString('default', { weekday: 'long' })}, {date.toLocaleString('default', { month: 'short' })} {date.getDate()}
-                  </h4>
-                  {isToday && <span className="bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-full font-bold">TODAY</span>}
-                </div>
-
-                <div className="space-y-3">
-                  {dayEvents.map(event => (
-                    <div key={event.id} className="bg-gray-50/50 border border-gray-100 rounded-xl p-4 sm:p-5 hover:bg-gray-50 transition-colors group">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-                        
-                        <div className="flex flex-col min-w-[120px]">
-                          <div className="flex items-center gap-2 text-primary font-bold text-lg">
-                            <Clock className="w-4 h-4 opacity-70" />
-                            {formatTime(event.start_time)}
-                          </div>
-                          {event.end_time && (
-                            <div className="text-xs text-gray-400 font-medium ml-6">
-                              to {formatTime(event.end_time)}
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div className="flex-1">
-                          <h5 className="font-bold text-gray-800 text-base mb-1 group-hover:text-primary transition-colors">{event.title}</h5>
-                          <div className="flex items-center gap-1.5 text-sm text-gray-500 font-medium">
-                            <MapPin className="w-3.5 h-3.5" />
-                            {event.location}
-                          </div>
-                        </div>
-
-                      </div>
-                    </div>
-                  ))}
-                </div>
+          return (
+            <div key={i} className="relative">
+              <div className="sticky top-0 bg-white z-10 py-2 mb-3 border-b border-gray-100 flex items-center gap-2">
+                <h4 className={`text-sm font-bold uppercase tracking-widest ${isToday ? 'text-primary' : 'text-gray-500'}`}>
+                  {date.toLocaleString('default', { weekday: 'long' })}, {date.toLocaleString('default', { month: 'short' })} {date.getDate()}
+                </h4>
+                {isToday && <span className="bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-full font-bold">TODAY</span>}
               </div>
-            );
-          })
-        )}
+
+              <div className="space-y-3">
+                {dayEvents.map(event => (
+                  <div key={event.id} className="bg-gray-50/50 border border-gray-100 rounded-xl p-4 sm:p-5 hover:bg-gray-50 transition-colors group">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+                      
+                      <div className="flex flex-col min-w-[120px]">
+                        <div className="flex items-center gap-2 text-primary font-bold text-lg">
+                          <Clock className="w-4 h-4 opacity-70" />
+                          {formatTime(event.start_time)}
+                        </div>
+                        {event.end_time && (
+                          <div className="text-xs text-gray-400 font-medium ml-6">
+                            to {formatTime(event.end_time)}
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex-1">
+                        <h5 className="font-bold text-gray-800 text-base mb-1 group-hover:text-primary transition-colors">{event.title}</h5>
+                        <div className="flex items-center gap-1.5 text-sm text-gray-500 font-medium">
+                          <MapPin className="w-3.5 h-3.5" />
+                          {event.location}
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
         
-        {!loading && weekDays.every(d => getEventsForDate(d).length === 0) && (
+        {weekDays.every(d => getEventsForDate(d).length === 0) && (
           <div className="text-center py-12 text-gray-400 italic bg-gray-50 rounded-xl border border-dashed border-gray-200">
             No events scheduled for this week.
           </div>

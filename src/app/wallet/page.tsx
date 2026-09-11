@@ -59,6 +59,15 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
     .select('verse_text, reference')
     .eq('user_id', authData.user.id);
 
+  // Fetch events
+  let events = null;
+  try {
+    const { data } = await supabase.from('events').select('*');
+    events = data;
+  } catch (e) {
+    console.error('Events table missing');
+  }
+
   // Calculate Rank
   const adminClient = createAdminClient();
   const { data: allTxs } = await adminClient.from('transactions').select('user_id, points_added');
@@ -386,7 +395,7 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
       )}
 
       {currentTab === 'schedule' && (
-        <ScheduleView />
+        <ScheduleView initialEvents={events || []} />
       )}
     </div>
   );
