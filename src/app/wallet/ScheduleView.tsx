@@ -1,7 +1,67 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight, MapPin, Clock, Calendar as CalendarIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MapPin, Clock, Calendar as CalendarIcon, Church, BookOpen, Users } from 'lucide-react';
+
+const NaqoosIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <circle cx="9" cy="12" r="6" />
+    <circle cx="9" cy="12" r="2" />
+    <path d="M5 12 C3 16, 8 18, 10.5 14 C12 11, 7 8, 5 12 Z" />
+    <path d="M14 4 L6 20 L22 20 L18 12" />
+    <line x1="14" y1="4" x2="14" y2="1" />
+    <line x1="22" y1="9" x2="15" y2="16" strokeWidth="2" />
+    <line x1="23" y1="8" x2="21" y2="10" strokeWidth="3" />
+  </svg>
+);
+
+const EventIconIllustration = ({ title }: { title: string }) => {
+  const lower = title.toLowerCase();
+  
+  if (lower.includes('monday')) {
+    return (
+      <div className="flex items-center justify-center animate-float" style={{ animationDelay: '0.2s' }}>
+        <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-[#FCF8F2] to-[#EBE3D5] rounded-full shadow-[0_4px_10px_rgba(65,96,71,0.15)] flex items-center justify-center border-2 border-white">
+          <Church className="w-8 h-8 sm:w-10 sm:h-10 text-primary drop-shadow-sm" />
+          <div className="absolute -top-1 -right-1 w-5 h-5 bg-secondary rounded-full flex items-center justify-center shadow-sm">
+            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  if (lower.includes('tasbeha')) {
+    return (
+      <div className="flex items-center justify-center gap-2 animate-float-delayed">
+        <div className="relative w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-[#D97746] to-[#b35e33] rounded-2xl shadow-[0_4px_10px_rgba(217,119,70,0.3)] flex items-center justify-center border-2 border-white rotate-[-8deg] hover:rotate-0 transition-transform">
+          <NaqoosIcon className="w-7 h-7 sm:w-8 sm:h-8 text-white drop-shadow-sm" />
+        </div>
+        <div className="relative w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-primary to-[#2E4034] rounded-full shadow-[0_4px_10px_rgba(65,96,71,0.3)] flex items-center justify-center border-2 border-white rotate-[8deg] hover:rotate-0 transition-transform">
+          <BookOpen className="w-6 h-6 sm:w-7 sm:h-7 text-white drop-shadow-sm" />
+        </div>
+      </div>
+    );
+  }
+  if (lower.includes('wednesday')) {
+    return (
+      <div className="flex items-center justify-center animate-sway">
+        <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-[#e0f2fe] to-[#bae6fd] rounded-3xl shadow-[0_4px_10px_rgba(186,230,253,0.4)] flex items-center justify-center border-2 border-white rotate-[3deg]">
+          <Users className="w-8 h-8 sm:w-10 sm:h-10 text-[#0369a1] drop-shadow-sm" />
+          <div className="absolute -bottom-2 -left-2 text-xl filter drop-shadow-sm animate-bounce">👋</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback icon
+  return (
+    <div className="flex items-center justify-center animate-float">
+      <div className="w-14 h-14 bg-gray-50 rounded-full flex items-center justify-center border-2 border-gray-100 shadow-inner">
+        <CalendarIcon className="w-6 h-6 text-gray-300" />
+      </div>
+    </div>
+  );
+};
 
 export type ScheduleEvent = {
   id: string;
@@ -181,7 +241,7 @@ export default function ScheduleView({ initialEvents }: { initialEvents: Schedul
                     {/* Left Accent Bar */}
                     <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-primary to-secondary opacity-80 group-hover:opacity-100 group-hover:w-2 transition-all duration-300"></div>
                     
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 w-full">
                       
                       {/* Time Block */}
                       <div className="flex flex-col min-w-[130px] shrink-0 bg-white border border-gray-100 rounded-xl p-3 shadow-sm group-hover:border-primary/20 transition-colors">
@@ -206,6 +266,11 @@ export default function ScheduleView({ initialEvents }: { initialEvents: Schedul
                           <MapPin className="w-4 h-4 text-secondary shrink-0" />
                           <span className="truncate">{event.location}</span>
                         </div>
+                      </div>
+                      
+                      {/* Cartoon Illustration (Right) */}
+                      <div className="hidden sm:flex shrink-0 min-w-[100px] items-center justify-end pr-2 md:pr-6">
+                        <EventIconIllustration title={event.title} />
                       </div>
 
                     </div>
