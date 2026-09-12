@@ -280,14 +280,27 @@ export async function saveEvent(formData: FormData) {
   const id = formData.get('id') as string;
   const title = formData.get('title') as string;
   const location = formData.get('location') as string;
-  const day_of_week = parseInt(formData.get('day_of_week') as string);
+  const type = formData.get('type') as string; // 'recurring' or 'one-time'
+  
   const start_time = formData.get('start_time') as string;
   const end_time = formData.get('end_time') as string || null;
-  const valid_until = formData.get('valid_until') as string || null;
-  const is_recurring = formData.get('is_recurring') === 'on';
+  const icon = formData.get('icon') as string || 'default';
+  
+  let day_of_week = 0;
+  let event_date = null;
+  let valid_until = null;
+  let is_recurring = false;
+
+  if (type === 'one-time') {
+    event_date = formData.get('event_date') as string;
+  } else {
+    is_recurring = true;
+    day_of_week = parseInt(formData.get('day_of_week') as string);
+    valid_until = formData.get('valid_until') as string || null;
+  }
 
   const eventData = {
-    title, location, day_of_week, start_time, end_time, valid_until, is_recurring
+    title, location, day_of_week, start_time, end_time, valid_until, is_recurring, event_date, icon
   };
 
   if (id) {

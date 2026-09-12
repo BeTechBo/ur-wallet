@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight, MapPin, Clock, Calendar as CalendarIcon, Church, BookOpen, Users } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MapPin, Clock, Calendar as CalendarIcon, Church, BookOpen, Users, TreePine, Gift, PartyPopper, Cross, Smile } from 'lucide-react';
 
 const NaqoosIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -15,10 +15,17 @@ const NaqoosIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-const EventIconIllustration = ({ title }: { title: string }) => {
-  const lower = title.toLowerCase();
+const EventIconIllustration = ({ icon, title }: { icon?: string, title: string }) => {
+  // Determine icon to use: use explicit icon if available, otherwise try to guess from title
+  let iconType = icon && icon !== 'default' ? icon : '';
+  if (!iconType) {
+    const lower = title.toLowerCase();
+    if (lower.includes('monday') || lower.includes('church')) iconType = 'church';
+    else if (lower.includes('tasbeha')) iconType = 'tasbeha';
+    else if (lower.includes('wednesday') || lower.includes('meeting')) iconType = 'users';
+  }
   
-  if (lower.includes('monday')) {
+  if (iconType === 'church') {
     return (
       <div className="flex items-center justify-center animate-float" style={{ animationDelay: '0.2s' }}>
         <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-[#FCF8F2] to-[#EBE3D5] rounded-full shadow-[0_4px_10px_rgba(65,96,71,0.15)] flex items-center justify-center border-2 border-white">
@@ -30,7 +37,7 @@ const EventIconIllustration = ({ title }: { title: string }) => {
       </div>
     );
   }
-  if (lower.includes('tasbeha')) {
+  if (iconType === 'tasbeha') {
     return (
       <div className="flex items-center justify-center gap-2 animate-float-delayed">
         <div className="relative w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-[#D97746] to-[#b35e33] rounded-2xl shadow-[0_4px_10px_rgba(217,119,70,0.3)] flex items-center justify-center border-2 border-white rotate-[-8deg] hover:rotate-0 transition-transform">
@@ -42,12 +49,50 @@ const EventIconIllustration = ({ title }: { title: string }) => {
       </div>
     );
   }
-  if (lower.includes('wednesday')) {
+  if (iconType === 'users') {
     return (
       <div className="flex items-center justify-center animate-sway">
         <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-[#e0f2fe] to-[#bae6fd] rounded-3xl shadow-[0_4px_10px_rgba(186,230,253,0.4)] flex items-center justify-center border-2 border-white rotate-[3deg]">
           <Users className="w-8 h-8 sm:w-10 sm:h-10 text-[#0369a1] drop-shadow-sm" />
           <div className="absolute -bottom-2 -left-2 text-xl filter drop-shadow-sm animate-bounce">👋</div>
+        </div>
+      </div>
+    );
+  }
+  if (iconType === 'christmas') {
+    return (
+      <div className="flex items-center justify-center animate-float">
+        <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-red-50 to-red-100 rounded-full shadow-[0_4px_10px_rgba(220,38,38,0.15)] flex items-center justify-center border-2 border-white">
+          <TreePine className="w-8 h-8 sm:w-10 sm:h-10 text-green-700 drop-shadow-sm" />
+          <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center shadow-sm animate-pulse">
+            <Gift className="w-3.5 h-3.5 text-white" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+  if (iconType === 'cross') {
+    return (
+      <div className="flex items-center justify-center animate-float">
+        <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-yellow-50 to-amber-100 rounded-2xl shadow-[0_4px_10px_rgba(217,119,70,0.2)] flex items-center justify-center border-2 border-white rotate-[45deg] hover:rotate-0 transition-transform">
+          <div className="-rotate-[45deg] group-hover:rotate-0 transition-transform">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-secondary drop-shadow-sm">
+              <path d="M12 2v20" />
+              <path d="M5 8h14" />
+            </svg>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  if (iconType === 'fun') {
+    return (
+      <div className="flex items-center justify-center animate-sway">
+        <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-purple-50 to-fuchsia-100 rounded-full shadow-[0_4px_10px_rgba(192,38,211,0.2)] flex items-center justify-center border-2 border-white">
+          <PartyPopper className="w-8 h-8 sm:w-10 sm:h-10 text-fuchsia-600 drop-shadow-sm" />
+          <div className="absolute -top-1 -right-1 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center shadow-sm animate-bounce">
+            <Smile className="w-4 h-4 text-white" />
+          </div>
         </div>
       </div>
     );
@@ -72,6 +117,8 @@ export type ScheduleEvent = {
   end_time: string | null;
   valid_until: string | null;
   is_recurring: boolean;
+  event_date?: string | null;
+  icon?: string;
 };
 
 // Fallback hardcoded events if DB empty
@@ -146,11 +193,19 @@ export default function ScheduleView({ initialEvents }: { initialEvents: Schedul
   // Filter events for a given date
   const getEventsForDate = (date: Date) => {
     return events.filter(e => {
-      // Check valid_until if recurring
-      if (e.valid_until && new Date(date) > new Date(e.valid_until)) {
-        return false;
+      // If it's a one-time event, check the specific date
+      if (!e.is_recurring && e.event_date) {
+        return new Date(e.event_date).toDateString() === date.toDateString();
       }
-      return e.day_of_week === date.getDay();
+      
+      // If recurring, check valid_until
+      if (e.is_recurring) {
+        if (e.valid_until && new Date(date) > new Date(e.valid_until)) {
+          return false;
+        }
+        return e.day_of_week === date.getDay();
+      }
+      return false;
     }).sort((a, b) => a.start_time.localeCompare(b.start_time));
   };
 
@@ -270,7 +325,7 @@ export default function ScheduleView({ initialEvents }: { initialEvents: Schedul
                       
                       {/* Cartoon Illustration (Right) */}
                       <div className="hidden sm:flex shrink-0 min-w-[100px] items-center justify-end pr-2 md:pr-6">
-                        <EventIconIllustration title={event.title} />
+                        <EventIconIllustration icon={event.icon} title={event.title} />
                       </div>
 
                     </div>
