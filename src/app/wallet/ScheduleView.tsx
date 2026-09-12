@@ -95,39 +95,46 @@ export default function ScheduleView({ initialEvents }: { initialEvents: Schedul
   };
 
   return (
-    <div className="bg-white rounded-2xl p-6 sm:p-8 border border-secondary/30 shadow-sm">
-      <div className="flex items-center gap-3 mb-8 border-b border-gray-100 pb-4">
-        <CalendarIcon className="w-5 h-5 text-secondary" />
-        <h2 className="text-xl font-bold text-foreground">Community Schedule</h2>
-      </div>
+    <div className="bg-white rounded-3xl p-6 sm:p-8 border border-secondary/20 shadow-lg shadow-secondary/5 overflow-hidden relative">
+      {/* Background Decor */}
+      <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
 
-      <div className="flex justify-between items-center mb-6">
-        <button 
-          onClick={() => setCurrentDate(addWeeks(currentDate, -1))}
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-        >
-          <ChevronLeft className="w-5 h-5 text-gray-600" />
-        </button>
-        <h3 className="text-lg font-bold text-foreground tracking-wide uppercase">{monthName}</h3>
-        <button 
-          onClick={() => setCurrentDate(addWeeks(currentDate, 1))}
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-        >
-          <ChevronRight className="w-5 h-5 text-gray-600" />
-        </button>
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8 border-b border-gray-100 pb-6 relative z-10">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center border border-primary/10">
+            <CalendarIcon className="w-5 h-5 text-primary" />
+          </div>
+          <h2 className="text-2xl font-extrabold text-foreground">Community Schedule</h2>
+        </div>
+
+        <div className="flex items-center gap-4 bg-gray-50/80 px-2 py-1.5 rounded-2xl border border-gray-100">
+          <button 
+            onClick={() => setCurrentDate(addWeeks(currentDate, -1))}
+            className="p-2 hover:bg-white hover:shadow-sm rounded-xl transition-all text-gray-400 hover:text-primary"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <h3 className="w-32 text-center text-sm font-extrabold text-foreground tracking-widest uppercase">{monthName}</h3>
+          <button 
+            onClick={() => setCurrentDate(addWeeks(currentDate, 1))}
+            className="p-2 hover:bg-white hover:shadow-sm rounded-xl transition-all text-gray-400 hover:text-primary"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       {/* Week Header */}
-      <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-8">
+      <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-10 relative z-10">
         {weekDays.map((date, i) => {
           const isToday = new Date().toDateString() === date.toDateString();
           return (
             <div key={i} className="flex flex-col items-center">
-              <span className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
+              <span className={`text-[10px] sm:text-xs font-extrabold uppercase tracking-widest mb-2 ${isToday ? 'text-primary' : 'text-gray-400'}`}>
                 {date.toLocaleString('default', { weekday: 'short' })}
               </span>
-              <div className={`w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-full text-sm font-bold transition-all
-                ${isToday ? 'bg-primary text-white shadow-md' : 'text-gray-600'}`}>
+              <div className={`w-9 h-9 sm:w-12 sm:h-12 flex items-center justify-center rounded-xl text-sm sm:text-base font-bold transition-all duration-300
+                ${isToday ? 'bg-gradient-to-br from-primary to-primary text-white shadow-lg shadow-primary/20 scale-110' : 'bg-gray-50 text-gray-600 border border-gray-100 hover:border-primary/30 hover:bg-white'}`}>
                 {date.getDate()}
               </div>
             </div>
@@ -136,7 +143,8 @@ export default function ScheduleView({ initialEvents }: { initialEvents: Schedul
       </div>
 
       {/* Events List */}
-      <div className="space-y-8">
+      <div className="space-y-8 animate-fade-in relative">
+        <div className="absolute left-[20px] sm:left-[28px] top-4 bottom-4 w-px bg-gradient-to-b from-gray-100 via-gray-200 to-gray-100 hidden sm:block"></div>
         {weekDays.map((date, i) => {
           const dayEvents = getEventsForDate(date);
           const isToday = new Date().toDateString() === date.toDateString();
@@ -144,36 +152,59 @@ export default function ScheduleView({ initialEvents }: { initialEvents: Schedul
           if (dayEvents.length === 0) return null;
 
           return (
-            <div key={i} className="relative">
-              <div className="sticky top-0 bg-white z-10 py-2 mb-3 border-b border-gray-100 flex items-center gap-2">
+            <div 
+              key={i} 
+              className="relative animate-slide-up sm:pl-16" 
+              style={{ animationDelay: `${i * 100}ms` }}
+            >
+              {/* Timeline Dot (Desktop only) */}
+              <div className={`hidden sm:block absolute left-[24px] top-4 w-3 h-3 rounded-full border-2 transform -translate-x-1/2 z-10 ${isToday ? 'bg-primary border-white shadow-[0_0_0_4px_rgba(65,96,71,0.1)]' : 'bg-white border-gray-300'}`}></div>
+
+              <div className="sticky top-0 bg-white z-10 py-3 mb-4 flex items-center gap-3">
                 <h4 className={`text-sm font-bold uppercase tracking-widest ${isToday ? 'text-primary' : 'text-gray-500'}`}>
                   {date.toLocaleString('default', { weekday: 'long' })}, {date.toLocaleString('default', { month: 'short' })} {date.getDate()}
                 </h4>
-                {isToday && <span className="bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-full font-bold">TODAY</span>}
+                {isToday && (
+                  <span className="bg-gradient-to-r from-primary to-secondary text-white text-[10px] px-2.5 py-1 rounded-full font-bold shadow-sm animate-pulse">
+                    TODAY
+                  </span>
+                )}
               </div>
 
-              <div className="space-y-3">
-                {dayEvents.map(event => (
-                  <div key={event.id} className="bg-gray-50/50 border border-gray-100 rounded-xl p-4 sm:p-5 hover:bg-gray-50 transition-colors group">
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+              <div className="space-y-4">
+                {dayEvents.map((event, eventIdx) => (
+                  <div 
+                    key={event.id} 
+                    className="relative bg-gradient-to-br from-white to-gray-50/50 border border-gray-100 rounded-2xl p-5 sm:p-6 hover:shadow-lg hover:border-secondary/30 transition-all duration-300 group overflow-hidden"
+                    style={{ animationDelay: `${(i * 100) + (eventIdx * 50)}ms` }}
+                  >
+                    {/* Left Accent Bar */}
+                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-primary to-secondary opacity-80 group-hover:opacity-100 group-hover:w-2 transition-all duration-300"></div>
+                    
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8">
                       
-                      <div className="flex flex-col min-w-[120px]">
+                      {/* Time Block */}
+                      <div className="flex flex-col min-w-[130px] shrink-0 bg-white border border-gray-100 rounded-xl p-3 shadow-sm group-hover:border-primary/20 transition-colors">
                         <div className="flex items-center gap-2 text-primary font-bold text-lg">
-                          <Clock className="w-4 h-4 opacity-70" />
+                          <Clock className="w-4 h-4 text-secondary" />
                           {formatTime(event.start_time)}
                         </div>
                         {event.end_time && (
-                          <div className="text-xs text-gray-400 font-medium ml-6">
+                          <div className="text-xs text-gray-500 font-bold ml-6 mt-1 flex items-center gap-1">
+                            <span className="w-1 h-1 rounded-full bg-gray-300"></span>
                             to {formatTime(event.end_time)}
                           </div>
                         )}
                       </div>
                       
+                      {/* Event Details */}
                       <div className="flex-1">
-                        <h5 className="font-bold text-gray-800 text-base mb-1 group-hover:text-primary transition-colors">{event.title}</h5>
-                        <div className="flex items-center gap-1.5 text-sm text-gray-500 font-medium">
-                          <MapPin className="w-3.5 h-3.5" />
-                          {event.location}
+                        <h5 className="font-extrabold text-foreground text-lg mb-2 group-hover:text-primary transition-colors">
+                          {event.title}
+                        </h5>
+                        <div className="inline-flex items-center gap-1.5 bg-gray-100/80 px-3 py-1.5 rounded-lg text-sm text-gray-600 font-medium">
+                          <MapPin className="w-4 h-4 text-secondary shrink-0" />
+                          <span className="truncate">{event.location}</span>
                         </div>
                       </div>
 
@@ -186,7 +217,8 @@ export default function ScheduleView({ initialEvents }: { initialEvents: Schedul
         })}
         
         {weekDays.every(d => getEventsForDate(d).length === 0) && (
-          <div className="text-center py-12 text-gray-400 italic bg-gray-50 rounded-xl border border-dashed border-gray-200">
+          <div className="text-center py-16 text-gray-400 font-medium bg-gray-50/50 rounded-2xl border-2 border-dashed border-gray-200 animate-fade-in">
+            <CalendarIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
             No events scheduled for this week.
           </div>
         )}
