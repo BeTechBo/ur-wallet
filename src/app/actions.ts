@@ -58,7 +58,15 @@ export async function registerMember(formData: FormData) {
   const email = formData.get('email') as string
   const fullName = formData.get('fullName') as string
   const major = formData.get('major') as string
-  const dob = formData.get('dob') as string
+  
+  const dob_month = formData.get('dob_month') as string;
+  const dob_day = formData.get('dob_day') as string;
+  const dob_year = formData.get('dob_year') as string;
+  
+  let dob = null;
+  if (dob_month && dob_day) {
+    dob = dob_year ? `${dob_year}-${dob_month}-${dob_day}` : `XXXX-${dob_month}-${dob_day}`;
+  }
   
   if (!email || !fullName || !major) {
     redirect('/admin?error=Missing required fields');

@@ -78,9 +78,30 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
                 <label className="block text-[11px] font-bold text-foreground/50 uppercase tracking-widest mb-2">Major</label>
                 <input name="major" type="text" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm bg-gray-50 outline-none transition-all" placeholder="e.g. Computer Science" required />
               </div>
-                <div>
+                <div className="col-span-2 sm:col-span-1">
                   <label className="block text-[11px] font-bold text-foreground/50 uppercase tracking-widest mb-2">Birthday (Opt)</label>
-                  <input name="dob" type="text" placeholder="e.g. Oct 23 or 10/23/2004" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm bg-gray-50 outline-none transition-all text-foreground/70" />
+                  <div className="flex gap-2">
+                    <select name="dob_month" className="flex-1 px-2 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm bg-gray-50 outline-none text-foreground/70">
+                      <option value="">Month</option>
+                      <option value="01">Jan</option>
+                      <option value="02">Feb</option>
+                      <option value="03">Mar</option>
+                      <option value="04">Apr</option>
+                      <option value="05">May</option>
+                      <option value="06">Jun</option>
+                      <option value="07">Jul</option>
+                      <option value="08">Aug</option>
+                      <option value="09">Sep</option>
+                      <option value="10">Oct</option>
+                      <option value="11">Nov</option>
+                      <option value="12">Dec</option>
+                    </select>
+                    <select name="dob_day" className="flex-1 px-2 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm bg-gray-50 outline-none text-foreground/70">
+                      <option value="">Day</option>
+                      {Array.from({length: 31}).map((_, i) => <option key={i} value={String(i+1).padStart(2, '0')}>{i+1}</option>)}
+                    </select>
+                    <input name="dob_year" type="number" placeholder="Year" min="1900" max={new Date().getFullYear()} className="w-16 sm:w-20 px-2 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm bg-gray-50 outline-none" />
+                  </div>
                 </div>
             </div>
             <SubmitButton loadingText="Adding..." className="w-full bg-foreground text-white py-3 rounded-xl text-sm font-bold hover:bg-foreground/90 transition-colors shadow-sm">
