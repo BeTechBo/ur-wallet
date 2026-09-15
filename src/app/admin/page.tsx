@@ -78,10 +78,10 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
                 <label className="block text-[11px] font-bold text-foreground/50 uppercase tracking-widest mb-2">Major</label>
                 <input name="major" type="text" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm bg-gray-50 outline-none transition-all" placeholder="e.g. Computer Science" required />
               </div>
-              <div>
-                <label className="block text-[11px] font-bold text-foreground/50 uppercase tracking-widest mb-2">Date of Birth</label>
-                <input name="dob" type="date" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm bg-gray-50 outline-none transition-all text-foreground/70" />
-              </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-foreground/50 uppercase tracking-widest mb-2">Birthday (Opt)</label>
+                  <input name="dob" type="text" placeholder="e.g. Oct 23 or 10/23/2004" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm bg-gray-50 outline-none transition-all text-foreground/70" />
+                </div>
             </div>
             <SubmitButton loadingText="Adding..." className="w-full bg-foreground text-white py-3 rounded-xl text-sm font-bold hover:bg-foreground/90 transition-colors shadow-sm">
               Add Member & Send Email
