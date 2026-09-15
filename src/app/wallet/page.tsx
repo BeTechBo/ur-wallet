@@ -163,9 +163,15 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
               <p className="text-lg font-medium text-foreground">{profile?.major || '-'}</p>
             </div>
             <div className="space-y-1">
-              <p className="text-xs font-bold text-foreground/50 uppercase tracking-widest">Date of Birth</p>
-              <p className="text-lg font-medium text-foreground">{profile?.date_of_birth ? new Date(profile.date_of_birth).toLocaleDateString() : '-'}</p>
-            </div>
+                <p className="text-xs font-bold text-foreground/50 uppercase tracking-widest">Date of Birth</p>
+                <p className="text-lg font-medium text-foreground">
+                  {profile?.date_of_birth ? (
+                    profile.date_of_birth.startsWith('XXXX-') 
+                      ? new Date(`2000-${profile.date_of_birth.substring(5)}`).toLocaleDateString(undefined, { month: 'long', day: 'numeric' })
+                      : new Date(profile.date_of_birth).toLocaleDateString()
+                  ) : '-'}
+                </p>
+              </div>
           </div>
         </div>
       )}
