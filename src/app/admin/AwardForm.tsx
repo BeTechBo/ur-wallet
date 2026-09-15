@@ -74,13 +74,14 @@ export default function AwardForm({ users }: { users: { id: string, email: strin
             required
           >
             <option value="">Select a package...</option>
-            <option value="david">David Prophet Package (20 coins - Tasbeha)</option>
-            <option value="samuel">Samuel Prophet Package (20 coins - Bible Study)</option>
-            <option value="upper_room">The Upper Room Package (50 coins - Both)</option>
-            <option value="paul">Saint Pauls Package (70 coins - Service)</option>
-            <option value="nehemiah">Nehemiahs Package (30 coins - Engager)</option>
-            <option value="christmas_night">Christmas Night Badge (100 coins - Major Event)</option>
-            <option value="welcome_badge">Welcome Badge (20 coins - Joined)</option>
+            <option value="david">David Prophet Package (15 coins - Tasbeha)</option>
+            <option value="samuel">Samuel Prophet Package (15 coins - Bible Study)</option>
+            <option value="upper_room">The Upper Room Package (45 coins - Both)</option>
+            <option value="paul">Saint Pauls Package (50 coins - Service)</option>
+            <option value="nehemiah">Nehemiahs Package (15 coins - Engager)</option>
+            <option value="special_topic">Special Topic Badge (25 coins - Special Topic)</option>
+            <option value="christmas_night">Christmas Night Badge (50 coins - Major Event)</option>
+            <option value="welcome_badge">Welcome Badge (25 coins - Joined)</option>
             <option value="other">Other (Custom Points)</option>
           </select>
         </div>

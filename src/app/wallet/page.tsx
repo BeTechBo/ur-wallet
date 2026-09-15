@@ -1,4 +1,4 @@
-import { Trophy, History, BookOpen, Music, Book, Home, HeartHandshake, Package, Flame, Star, User, Calendar } from 'lucide-react';
+import { Trophy, History, BookOpen, Music, Book, Home, HeartHandshake, Package, Flame, Star, User, Calendar, Lightbulb } from 'lucide-react';
 import AnimatedWallet from '@/components/AnimatedWallet';
 import URCoin from '@/components/URCoin';
 import { createClient } from '@/utils/supabase/server';
@@ -356,6 +356,25 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
                       <span className="text-[#FCF8F2] font-black text-[10px] sm:text-xs tracking-widest uppercase leading-none mt-1">Welcome</span>
                       <span className="text-[#FCF8F2] font-bold text-[8px] sm:text-[9px] tracking-wider uppercase opacity-80 mt-1">Joined</span>
                       <div className="mt-2.5 bg-[#FCF8F2] text-[#4a5568] text-[8px] sm:text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest shadow-sm">
+                        {count > 0 ? `${count}x Earned` : 'Locked'}
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+              if (pkg.id === 'special_topic') {
+                return (
+                  <div key={pkg.id} className={`relative flex flex-col items-center justify-center w-full max-w-[170px] aspect-square transition-all duration-300 ${isCollected ? 'hover:scale-105' : 'opacity-50 grayscale hover:opacity-80'}`}>
+                    <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full drop-shadow-md">
+                      {/* Star-like decagon badge */}
+                      <polygon points="50,5 82,15 95,45 82,75 50,95 18,75 5,45 18,15" fill="#8b5cf6" />
+                      <polygon points="50,12 77,21 88,46 77,71 50,88 23,71 12,46 23,21" fill="none" stroke="#FCF8F2" strokeWidth="1.5" />
+                    </svg>
+                    <div className="relative z-10 flex flex-col items-center justify-center text-center px-4">
+                      <Lightbulb className="w-7 h-7 text-[#FCF8F2] mb-1.5" />
+                      <span className="text-[#FCF8F2] font-black text-[10px] sm:text-xs tracking-widest uppercase leading-none mt-1">Special</span>
+                      <span className="text-[#FCF8F2] font-bold text-[8px] sm:text-[9px] tracking-wider uppercase opacity-80 mt-1">Topic</span>
+                      <div className="mt-2.5 bg-[#FCF8F2] text-[#8b5cf6] text-[8px] sm:text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest shadow-sm">
                         {count > 0 ? `${count}x Earned` : 'Locked'}
                       </div>
                     </div>
