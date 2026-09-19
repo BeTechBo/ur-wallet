@@ -4,9 +4,11 @@ import { NextResponse } from 'next/server';
 export const maxDuration = 60; // Allow max duration to handle batching delays
 
 export async function GET(request: Request) {
-  // Check authorization to ensure only Vercel Cron can trigger this
-  const authHeader = request.headers.get('authorization');
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const { searchParams } = new URL(request.url);
+  const key = searchParams.get('key');
+  
+  // Simple auth so nobody else can trigger your emails
+  if (key !== 'upperroom2024') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
