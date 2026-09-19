@@ -8,6 +8,7 @@ import { render } from '@react-email/render'
 import WelcomeEmail from '@/emails/WelcomeEmail'
 import PointsEmail from '@/emails/PointsEmail'
 import VerseEmail from '@/emails/VerseEmail'
+import BirthdayEmail from '@/emails/BirthdayEmail'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import versesData from '@/data/verses.json'
@@ -355,3 +356,26 @@ export async function deleteEvent(formData: FormData) {
   revalidatePath('/wallet');
 }
 
+
+export async function sendBirthdayAction(formData: FormData) {
+  const adminClient = createAdminClient()
+  const userId = formData.get('userId') as string;
+  if (!userId) return;
+
+  const { data: user } = await adminClient.from('profiles').select('email, full_name').eq('id', userId).single();
+  if (!user) return;
+
+  try {
+    const htmlStr = await render(BirthdayEmail({ 
+      userName: user.full_name?.split(' ')[0] || 'there'
+    }) as React.ReactElement)
+    await transporter.sendMail({
+      from: `"The Upper Room" <${process.env.GMAIL_USER}>`,
+      to: user.email,
+      subject: 'Happy Birthday from The Upper Room! 🎉',
+      html: htmlStr,
+    })
+  } catch(e) {
+    console.error('Email failed to send:', e)
+  }
+}

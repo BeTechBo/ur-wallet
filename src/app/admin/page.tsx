@@ -1,5 +1,5 @@
-import { Users, Coins, Mail, Plus, Trophy } from 'lucide-react';
-import { registerMember, distributeVerses } from '@/app/actions';
+import { Users, Coins, Mail, Plus, Trophy, Cake } from 'lucide-react';
+import { registerMember, distributeVerses, sendBirthdayAction } from '@/app/actions';
 import { createAdminClient } from '@/utils/supabase/admin';
 import AwardForm from './AwardForm';
 import AdminSchedule from './AdminSchedule';
@@ -7,12 +7,38 @@ import { SubmitButton } from '@/components/SubmitButton';
 
 export default async function AdminDashboard(props: { searchParams?: Promise<{ error?: string }> }) {
   const adminClient = createAdminClient();
-  const { data: users } = await adminClient.from('profiles').select('id, email, full_name').eq('role', 'user');
+  const { data: users } = await adminClient.from('profiles').select('id, email, full_name, date_of_birth').eq('role', 'user');
   const { data: allTransactions } = await adminClient.from('transactions').select('user_id, points_added, event_name');
   const { data: events } = await adminClient.from('events').select('*');
 
   const searchParams = await props.searchParams;
   const errorMsg = searchParams?.error;
+
+  const today = new Date();
+  const currentMonth = today.getMonth() + 1;
+  const currentDay = today.getDate();
+
+  const upcomingBirthdays = (users || [])
+    .filter(u => u.date_of_birth)
+    .map(u => {
+      const parts = u.date_of_birth.split('-');
+      if (parts.length !== 3) return null;
+      const month = parseInt(parts[1], 10);
+      const day = parseInt(parts[2], 10);
+      
+      let nextBirthdayYear = today.getFullYear();
+      if (month < currentMonth || (month === currentMonth && day < currentDay)) {
+        nextBirthdayYear++;
+      }
+      
+      const nextBday = new Date(nextBirthdayYear, month - 1, day);
+      const daysUntil = Math.ceil((nextBday.getTime() - today.getTime()) / (1000 * 3600 * 24));
+      
+      return { ...u, month, day, daysUntil, nextBday };
+    })
+    .filter(Boolean)
+    .sort((a, b) => (a as any).daysUntil - (b as any).daysUntil)
+    .slice(0, 5);
 
   type LeaderboardEntry = {
     userId: string;
@@ -107,6 +133,37 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
             </SubmitButton>
           </form>
         </div>
+
+        {/* Upcoming Birthdays */}
+        {upcomingBirthdays.length > 0 && (
+          <div className="bg-white rounded-2xl p-8 border border-secondary/30 shadow-sm flex flex-col mb-8">
+            <div className="flex items-center gap-3 mb-6">
+              <Cake className="w-5 h-5 text-secondary" />
+              <h2 className="font-bold text-lg text-foreground">Upcoming Birthdays</h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {upcomingBirthdays.map((u, i) => (
+                <div key={i} className="border border-gray-100 bg-gray-50/50 rounded-xl p-4 flex flex-col justify-between">
+                  <div>
+                    <h3 className="font-bold text-foreground">{u.full_name || u.email || 'Member'}</h3>
+                    <p className="text-xs text-foreground/50 mb-3">
+                      {u.nextBday.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} 
+                      <span className="font-bold text-secondary ml-1">
+                        ({u.daysUntil === 0 ? 'Today!' : `in ${u.daysUntil} day${u.daysUntil > 1 ? 's' : ''}`})
+                      </span>
+                    </p>
+                  </div>
+                  <form action={sendBirthdayAction}>
+                    <input type="hidden" name="userId" value={u.id} />
+                    <SubmitButton loadingText="Sending..." className="w-full bg-secondary/10 text-secondary hover:bg-secondary hover:text-white py-2 rounded-lg text-xs font-bold transition-colors">
+                      Send Birthday Email
+                    </SubmitButton>
+                  </form>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Award UR-coins */}
         <AwardForm users={users || []} />
