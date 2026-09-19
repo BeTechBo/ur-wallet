@@ -35,7 +35,7 @@ export async function login(formData: FormData) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password })
   if (error) {
     console.error(error.message)
-    return
+    redirect(`/?error=${encodeURIComponent(error.message)}`)
   }
 
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', data.user.id).single()

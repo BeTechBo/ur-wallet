@@ -1,14 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Cross } from 'lucide-react';
 import { login } from '@/app/actions';
 
 import { SubmitButton } from '@/components/SubmitButton';
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const searchParams = useSearchParams();
+  const errorMsg = searchParams.get('error');
+
   return (
     <div className="flex flex-col justify-center py-20 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -27,6 +31,13 @@ export default function LoginPage() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 border border-secondary">
+          {errorMsg && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm font-medium text-center">
+              {errorMsg === 'Invalid login credentials' 
+                ? 'Incorrect email or password. Please try again.' 
+                : errorMsg}
+            </div>
+          )}
           <form className="space-y-6" action={login}>
             <div>
               <label
@@ -78,5 +89,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center py-20">Loading...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }
