@@ -36,7 +36,7 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
       
       return { ...u, month, day, daysUntil, nextBday };
     })
-    .filter(Boolean)
+    .filter((u): u is NonNullable<typeof u> => Boolean(u))
     .sort((a, b) => (a as any).daysUntil - (b as any).daysUntil)
     .slice(0, 5);
 
