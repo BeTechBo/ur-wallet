@@ -118,12 +118,12 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
             <h2 className="font-bold text-lg text-foreground">Distribute Verses</h2>
           </div>
           <p className="text-xs text-foreground/60 mb-6 leading-relaxed">
-            Picks a daily pool of 10 random verses from your collection, then distributes 1 to everyone, or sends 1 to a specific targeted member.
+            Picks a daily pool of 10 random verses from your collection, then distributes 1 to everyone in small batches (20 at a time), or sends 1 to a specific targeted member.
           </p>
           <div className="bg-background border border-secondary/40 rounded-xl p-6 mb-6 text-center flex-1 flex flex-col justify-center items-center relative">
-             <div className="absolute top-0 left-1/2 -translate-x-1/2 -mt-3 bg-white px-2 text-secondary text-xl">🕊️</div>
+             <div className="absolute top-0 left-1/2 -translate-x-1/2 -mt-3 bg-white px-2 text-secondary text-xl">✨</div>
              <p className="text-sm text-foreground font-medium mt-2">
-              Ready to distribute 10 random verses to the family!
+              Ready to distribute verses to the family!
              </p>
           </div>
           <form action={distributeVerses} className="space-y-4">
@@ -133,7 +133,7 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
                 name="userId" 
                 className="w-full px-4 py-2 border border-secondary/30 rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary text-sm bg-gray-50 outline-none transition-all"
               >
-                <option value="all">Everyone (All Members)</option>
+                <option value="all">Everyone (Send next 20)</option>
                 {users?.map(u => (
                   <option key={u.id} value={u.id}>{u.full_name || u.email}</option>
                 ))}

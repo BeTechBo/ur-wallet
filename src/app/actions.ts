@@ -202,15 +202,36 @@ export async function distributeVerses(formData?: FormData) {
   const selectedVerses = [...versesData].sort(() => 0.5 - Math.random()).slice(0, 10)
   if (selectedVerses.length === 0) return
   
-  let usersQuery = adminClient.from('profiles').select('id, email').eq('role', 'user');
+  let targetUsers = [];
+  
   if (targetUserId && targetUserId !== 'all') {
-     usersQuery = usersQuery.eq('id', targetUserId);
+    const { data } = await adminClient.from('profiles').select('id, email').eq('role', 'user').eq('id', targetUserId);
+    targetUsers = data || [];
+  } else {
+    // BATCHING MODE: Get users who haven't received a verse today (limit 20)
+    const startOfToday = new Date();
+    startOfToday.setUTCHours(0, 0, 0, 0);
+    
+    // Find who already got a verse today
+    const { data: versesToday } = await adminClient
+      .from('verses')
+      .select('user_id')
+      .gte('created_at', startOfToday.toISOString());
+      
+    const usersWithVerseToday = new Set(versesToday?.map(v => v.user_id) || []);
+    
+    // Get all users and filter out those who already got one today
+    const { data: allUsers } = await adminClient.from('profiles').select('id, email').eq('role', 'user');
+    if (allUsers) {
+      targetUsers = allUsers.filter(u => !usersWithVerseToday.has(u.id)).slice(0, 20);
+    }
   }
   
-  const { data: users } = await usersQuery;
-  if (!users || users.length === 0) return
+  if (targetUsers.length === 0) return;
   
-  for (const user of users) {
+  const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+  
+  for (const user of targetUsers) {
      // Pick a random verse from today's pool of 10 for THIS specific user
      const randomVerse = selectedVerses[Math.floor(Math.random() * selectedVerses.length)];
      
@@ -249,6 +270,9 @@ export async function distributeVerses(formData?: FormData) {
      } catch(e) {
        console.error('Email failed to send:', e)
      }
+     
+     // Add a 1.5 second delay between emails to prevent Gmail spam blocking
+     await delay(1500);
   }
   
   revalidatePath('/admin')
