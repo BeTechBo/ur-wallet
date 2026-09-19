@@ -202,7 +202,7 @@ export async function distributeVerses(formData?: FormData) {
   const selectedVerses = [...versesData].sort(() => 0.5 - Math.random()).slice(0, 10)
   if (selectedVerses.length === 0) return
   
-  let targetUsers = [];
+  let targetUsers: any[] = [];
   
   if (targetUserId && targetUserId !== 'all') {
     const { data } = await adminClient.from('profiles').select('id, email').eq('role', 'user').eq('id', targetUserId);
