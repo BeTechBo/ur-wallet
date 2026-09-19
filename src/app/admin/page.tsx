@@ -30,8 +30,8 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
       let nextBday = new Date(nextBirthdayYear, month - 1, day);
       let daysUntil = Math.ceil((nextBday.getTime() - today.getTime()) / (1000 * 3600 * 24));
       
-      // If the birthday was more than 2 days ago, set it to next year
-      if (daysUntil < -2) {
+      // If the birthday was more than 4 days ago, set it to next year
+      if (daysUntil < -4) {
         nextBirthdayYear++;
         nextBday = new Date(nextBirthdayYear, month - 1, day);
         daysUntil = Math.ceil((nextBday.getTime() - today.getTime()) / (1000 * 3600 * 24));
@@ -137,37 +137,6 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
           </form>
         </div>
 
-        {/* Upcoming Birthdays */}
-        {upcomingBirthdays.length > 0 && (
-          <div className="bg-white rounded-2xl p-8 border border-secondary/30 shadow-sm flex flex-col mb-8">
-            <div className="flex items-center gap-3 mb-6">
-              <Cake className="w-5 h-5 text-secondary" />
-              <h2 className="font-bold text-lg text-foreground">Upcoming Birthdays</h2>
-            </div>
-            <div className="flex flex-col gap-3">
-              {upcomingBirthdays.map((u, i) => (
-                <div key={i} className="border border-gray-100 bg-gray-50/50 rounded-xl p-4 flex items-center justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-foreground truncate">{u.full_name || u.email || 'Member'}</h3>
-                    <p className="text-xs text-foreground/50">
-                      {u.nextBday.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} 
-                      <span className="font-bold text-secondary ml-1">
-                        ({u.daysUntil === 0 ? 'Today!' : u.daysUntil === -1 ? 'Yesterday' : u.daysUntil === -2 ? '2 days ago' : `in ${u.daysUntil} day${u.daysUntil > 1 ? 's' : ''}`})
-                      </span>
-                    </p>
-                  </div>
-                  <form action={sendBirthdayAction} className="shrink-0">
-                    <input type="hidden" name="userId" value={u.id} />
-                    <SubmitButton loadingText="Sending..." className="bg-secondary/10 text-secondary hover:bg-secondary hover:text-white px-4 py-2 rounded-lg text-xs font-bold transition-colors">
-                      Send Wish
-                    </SubmitButton>
-                  </form>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Award UR-coins */}
         <AwardForm users={users || []} />
 
@@ -207,6 +176,37 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
 
       </div>
       
+      {/* Upcoming Birthdays */}
+      {upcomingBirthdays.length > 0 && (
+        <div className="mt-8 bg-white rounded-2xl p-8 border border-secondary/30 shadow-sm">
+          <div className="flex items-center gap-3 mb-6">
+            <Cake className="w-5 h-5 text-secondary" />
+            <h2 className="font-bold text-xl text-foreground">Upcoming Birthdays</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {upcomingBirthdays.map((u, i) => (
+              <div key={i} className="border border-gray-100 bg-gray-50/50 rounded-xl p-4 flex flex-col justify-between">
+                <div>
+                  <h3 className="font-bold text-foreground text-lg">{u.full_name || u.email || 'Member'}</h3>
+                  <p className="text-sm text-foreground/50 mb-4 mt-1">
+                    {u.nextBday.toLocaleDateString(undefined, { month: 'long', day: 'numeric' })} 
+                    <span className="font-bold text-secondary ml-2">
+                      ({u.daysUntil === 0 ? 'Today!' : u.daysUntil === -1 ? 'Yesterday' : u.daysUntil < 0 ? `${Math.abs(u.daysUntil)} days ago` : `in ${u.daysUntil} day${u.daysUntil > 1 ? 's' : ''}`})
+                    </span>
+                  </p>
+                </div>
+                <form action={sendBirthdayAction}>
+                  <input type="hidden" name="userId" value={u.id} />
+                  <SubmitButton loadingText="Sending..." className="w-full bg-secondary/10 text-secondary hover:bg-secondary hover:text-white py-2.5 rounded-xl text-sm font-bold transition-colors">
+                    Send Birthday Email
+                  </SubmitButton>
+                </form>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="mt-8">
         <AdminSchedule initialEvents={events || []} />
       </div>
