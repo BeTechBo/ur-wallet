@@ -1,4 +1,4 @@
-import { Html, Head, Preview, Body, Container, Section, Text, Heading } from '@react-email/components'
+import { Html, Head, Preview, Body, Container, Section, Text, Heading, Img } from '@react-email/components'
 import * as React from 'react'
 
 interface BirthdayEmailProps {
@@ -12,28 +12,38 @@ export default function BirthdayEmail({ userName = 'there' }: BirthdayEmailProps
       <Preview>Happy birthday to the precious child of the King! 🎉</Preview>
       <Body style={main}>
         <Container style={container}>
-          <Section style={header}>
-            <Heading style={title}>Happy Birthday, {userName}! 🎂</Heading>
+          
+          {/* Festive Banner */}
+          <Section style={banner}>
+            <Text style={emojiRow}>🎈 🎉 🎂 🎉 🎈</Text>
+            <Heading style={title}>Happy Birthday,</Heading>
+            <Heading style={nameTitle}>{userName}!</Heading>
           </Section>
+
           <Section style={body}>
-            <Text style={text}>
-              <strong>Happy birthday to the precious child of the King!</strong>
+            <Text style={highlightText}>
+              Happy birthday to the precious child of the King! 👑
             </Text>
+            
             <Text style={text}>
-              Jesus has created you from day one, and He is super proud of you, reminding you that He will be with you during this year as well!
+              Jesus has created you from day one, and He is super proud of you, reminding you that He will be with you during this year as well! 
             </Text>
             
             <div style={verseCard}>
+              <Text style={sparkle}>✨</Text>
               <Text style={verseText}>
                 "The Lord bless you and keep you; the Lord make his face shine on you and be gracious to you; the Lord turn his face toward you and give you peace."
               </Text>
-              <Text style={verseRef}>— Numbers 6:24-26</Text>
+              <Text style={verseRef}>- Numbers 6:24-26</Text>
+              <Text style={sparkleBottom}>✨</Text>
             </div>
             
-            <Text style={footer}>
-              Have a blessed and joyful day!<br/>
-              The Upper Room Family
-            </Text>
+            <div style={footerRow}>
+              <Text style={footer}>
+                Have a beautiful, blessed, and joyful day!<br/>
+                <strong>The Upper Room Family</strong> 🎁
+              </Text>
+            </div>
           </Section>
         </Container>
       </Body>
@@ -42,70 +52,118 @@ export default function BirthdayEmail({ userName = 'there' }: BirthdayEmailProps
 }
 
 const main = {
-  backgroundColor: '#f6f9fc',
+  backgroundColor: '#f9e8d9', // Warm, festive background for the email client
   fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
+  padding: '40px 0',
 }
 
 const container = {
   backgroundColor: '#ffffff',
   margin: '0 auto',
-  padding: '40px 20px',
-  borderRadius: '12px',
-  maxWidth: '500px',
-  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
-  borderTop: '6px solid #D97746',
+  borderRadius: '24px',
+  maxWidth: '540px',
+  boxShadow: '0 8px 30px rgba(0, 0, 0, 0.1)',
+  overflow: 'hidden',
 }
 
-const header = {
+const banner = {
+  background: 'linear-gradient(135deg, #D97746 0%, #416047 100%)', // Upper Room colors in a gradient!
+  padding: '40px 20px',
   textAlign: 'center' as const,
-  marginBottom: '24px',
+}
+
+const emojiRow = {
+  fontSize: '28px',
+  margin: '0 0 15px 0',
+  letterSpacing: '10px',
 }
 
 const title = {
-  color: '#416047',
-  fontSize: '26px',
-  fontWeight: 'bold',
+  color: '#ffffff',
+  fontSize: '24px',
+  fontWeight: 'normal',
   margin: '0',
+  letterSpacing: '2px',
+  textTransform: 'uppercase' as const,
+  opacity: 0.9,
+}
+
+const nameTitle = {
+  color: '#ffffff',
+  fontSize: '42px',
+  fontWeight: '900',
+  margin: '5px 0 0 0',
+  letterSpacing: '-1px',
 }
 
 const body = {
-  padding: '0 20px',
+  padding: '40px 30px',
+}
+
+const highlightText = {
+  color: '#D97746',
+  fontSize: '22px',
+  fontWeight: 'bold',
+  lineHeight: '1.4',
+  textAlign: 'center' as const,
+  margin: '0 0 25px 0',
 }
 
 const text = {
-  color: '#333',
-  fontSize: '16px',
-  lineHeight: '24px',
-  marginBottom: '20px',
+  color: '#444444',
+  fontSize: '17px',
+  lineHeight: '1.6',
+  textAlign: 'center' as const,
+  marginBottom: '35px',
 }
 
 const verseCard = {
   backgroundColor: '#FCF8F2',
-  borderRadius: '12px',
-  padding: '24px',
-  margin: '30px 0',
-  borderLeft: '4px solid #416047',
+  borderRadius: '16px',
+  padding: '30px',
+  margin: '0 0 35px 0',
+  border: '2px dashed #D97746',
+  position: 'relative' as const,
+  textAlign: 'center' as const,
+}
+
+const sparkle = {
+  fontSize: '24px',
+  margin: '0 0 10px 0',
+}
+
+const sparkleBottom = {
+  fontSize: '24px',
+  margin: '15px 0 0 0',
 }
 
 const verseText = {
   color: '#2E4034',
-  fontSize: '18px',
+  fontSize: '19px',
   fontStyle: 'italic',
-  lineHeight: '1.6',
-  margin: '0 0 12px 0',
+  lineHeight: '1.5',
+  margin: '0 0 15px 0',
+  fontWeight: '500',
 }
 
 const verseRef = {
   color: '#D97746',
-  fontSize: '14px',
+  fontSize: '15px',
   fontWeight: 'bold',
   margin: '0',
-  textAlign: 'right' as const,
+  textTransform: 'uppercase' as const,
+  letterSpacing: '1px',
+}
+
+const footerRow = {
+  borderTop: '1px solid #f0f0f0',
+  paddingTop: '25px',
 }
 
 const footer = {
-  color: '#666',
-  fontSize: '14px',
-  marginTop: '32px',
-  lineHeight: '1.5',
+  color: '#888888',
+  fontSize: '15px',
+  lineHeight: '1.6',
+  textAlign: 'center' as const,
+  margin: '0',
 }
