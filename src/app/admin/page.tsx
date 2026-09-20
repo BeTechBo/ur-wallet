@@ -210,7 +210,7 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
                     {log.user_name}
                   </span>
                   <span className="text-xs font-bold text-secondary/70 shrink-0">
-                    {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Cairo' })}
                   </span>
                 </div>
               ))
