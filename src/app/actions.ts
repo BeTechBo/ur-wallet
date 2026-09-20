@@ -251,6 +251,13 @@ export async function distributeVerses(formData?: FormData) {
          verse_text: randomVerse.text,
          reference: randomVerse.reference
        })
+     } else {
+       // CRITICAL FIX: If they already had this verse, we MUST update its timestamp to right now.
+       // Otherwise, the batching script won't know they received an email today, and will send them 
+       // another email every hour!
+       await adminClient.from('verses').update({ 
+         created_at: new Date().toISOString() 
+       }).eq('id', existingVerse.id)
      }
      
      // Always send the email, even if they already have it in the dashboard
