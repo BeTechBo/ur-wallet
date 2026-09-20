@@ -210,7 +210,12 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
                     {log.user_name}
                   </span>
                   <span className="text-xs font-bold text-secondary/70 shrink-0">
-                    {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Cairo' })}
+                    {(() => {
+                      const d = new Date(log.created_at);
+                      // Add 3 hours for UTC+3 (Cairo Time)
+                      d.setUTCHours(d.getUTCHours() + 3);
+                      return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
+                    })()}
                   </span>
                 </div>
               ))
