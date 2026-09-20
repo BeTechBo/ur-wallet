@@ -11,6 +11,19 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
   const { data: allTransactions } = await adminClient.from('transactions').select('user_id, points_added, event_name');
   const { data: events } = await adminClient.from('events').select('*');
 
+  const startOfToday = new Date();
+  startOfToday.setUTCHours(0, 0, 0, 0);
+  const { data: todayVersesData } = await adminClient
+    .from('verses')
+    .select('user_id, created_at')
+    .gte('created_at', startOfToday.toISOString())
+    .order('created_at', { ascending: false });
+    
+  const todayVersesLog = (todayVersesData || []).map(v => {
+    const user = users?.find(u => u.id === v.user_id);
+    return { ...v, user_name: user?.full_name || user?.email || 'Unknown Member' };
+  });
+
   const searchParams = await props.searchParams;
   const errorMsg = searchParams?.error;
 
@@ -172,6 +185,37 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
               Randomize & Send Emails
             </SubmitButton>
           </form>
+        </div>
+
+        {/* Today's Verses Log */}
+        <div className="bg-white rounded-2xl p-8 border border-secondary/30 shadow-sm lg:col-span-2 flex flex-col h-[420px]">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <Mail className="w-5 h-5 text-secondary" />
+              <h2 className="font-bold text-lg text-foreground">Today's Distributions Log</h2>
+            </div>
+            <span className="bg-secondary/10 text-secondary px-3 py-1 rounded-full text-xs font-bold">
+              {todayVersesLog.length} sent today
+            </span>
+          </div>
+          <div className="overflow-y-auto flex-1 pr-2 space-y-2">
+            {todayVersesLog.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-foreground/50 text-sm italic">
+                No verses sent yet today.
+              </div>
+            ) : (
+              todayVersesLog.map((log, i) => (
+                <div key={i} className="flex justify-between items-center p-3 rounded-xl bg-gray-50/50 border border-gray-100 hover:bg-gray-50 transition-colors">
+                  <span className="font-medium text-sm text-foreground truncate mr-4">
+                    {log.user_name}
+                  </span>
+                  <span className="text-xs font-bold text-secondary/70 shrink-0">
+                    {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
         </div>
 
       </div>
