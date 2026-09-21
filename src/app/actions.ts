@@ -9,6 +9,7 @@ import WelcomeEmail from '@/emails/WelcomeEmail'
 import PointsEmail from '@/emails/PointsEmail'
 import VerseEmail from '@/emails/VerseEmail'
 import BirthdayEmail from '@/emails/BirthdayEmail'
+import ScheduleEmail from '@/emails/ScheduleEmail'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import versesData from '@/data/verses.json'
@@ -385,4 +386,76 @@ export async function sendBirthdayAction(formData: FormData) {
   } catch(e) {
     console.error('Email failed to send:', e)
   }
+}
+// DISTRIBUTE SCHEDULE
+export async function distributeSchedule(formData: FormData) {
+  const adminClient = createAdminClient()
+  const targetUserId = formData.get('userId') as string;
+  const eventIds = formData.getAll('eventIds') as string[];
+  
+  if (eventIds.length === 0) return;
+  
+  const { data: events } = await adminClient.from('events').select('*').in('id', eventIds);
+  if (!events || events.length === 0) return;
+  
+  const daysMap = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const formattedEvents = events.map(e => ({
+    id: e.id,
+    title: e.title,
+    location: e.location,
+    day: daysMap[e.day_of_week] || 'Unknown',
+    time: e.start_time + (e.end_time ?  -  + e.end_time : ''),
+  }));
+
+  let targetUsers: any[] = [];
+  
+  if (targetUserId && targetUserId !== 'all') {
+    const { data } = await adminClient.from('profiles').select('id, email, full_name').eq('role', 'user').eq('id', targetUserId);
+    targetUsers = data || [];
+  } else {
+    // BATCHING MODE: Get users who haven't received a schedule in the last 6 days
+    const sixDaysAgo = new Date();
+    sixDaysAgo.setDate(sixDaysAgo.getDate() - 6);
+    sixDaysAgo.setUTCHours(0, 0, 0, 0);
+    
+    const { data: recentLogs } = await adminClient
+      .from('schedule_logs')
+      .select('user_id')
+      .gte('created_at', sixDaysAgo.toISOString());
+      
+    const usersWithSchedule = new Set(recentLogs?.map(v => v.user_id) || []);
+    
+    const { data: allUsers } = await adminClient.from('profiles').select('id, email, full_name').eq('role', 'user');
+    if (allUsers) {
+      targetUsers = allUsers.filter(u => !usersWithSchedule.has(u.id)).slice(0, 20);
+    }
+  }
+  
+  if (targetUsers.length === 0) return;
+  
+  const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+  
+  for (const user of targetUsers) {
+    // Insert log
+    await adminClient.from('schedule_logs').insert({ user_id: user.id });
+    
+    try {
+      const htmlStr = await render(ScheduleEmail({ 
+        userName: user.full_name || user.email.split('@')[0] || 'there',
+        events: formattedEvents
+      }) as React.ReactElement)
+      await transporter.sendMail({
+        from: `"The Upper Room" <${process.env.GMAIL_USER}>`,
+        to: user.email,
+        subject: 'Your Weekly Schedule from The Upper Room',
+        html: htmlStr,
+      })
+    } catch(e) {
+      console.error('Email failed to send:', e)
+    }
+    
+    await delay(1500);
+  }
+  
+  revalidatePath('/admin');
 }

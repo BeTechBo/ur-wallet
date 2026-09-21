@@ -1,5 +1,5 @@
-import { Users, Coins, Mail, Plus, Trophy, Cake } from 'lucide-react';
-import { registerMember, distributeVerses, sendBirthdayAction } from '@/app/actions';
+import { Users, Coins, Mail, Plus, Trophy, Cake, Calendar, CheckCircle, Clock } from 'lucide-react';
+import { registerMember, distributeVerses, sendBirthdayAction, distributeSchedule } from '@/app/actions';
 import { createAdminClient } from '@/utils/supabase/admin';
 import AwardForm from './AwardForm';
 import AdminSchedule from './AdminSchedule';
@@ -10,6 +10,15 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
   const { data: users } = await adminClient.from('profiles').select('id, email, full_name, date_of_birth').eq('role', 'user');
   const { data: allTransactions } = await adminClient.from('transactions').select('user_id, points_added, event_name');
   const { data: events } = await adminClient.from('events').select('*');
+
+  // Schedule tracking
+  const sixDaysAgo = new Date();
+  sixDaysAgo.setDate(sixDaysAgo.getDate() - 6);
+  sixDaysAgo.setUTCHours(0, 0, 0, 0);
+  const { data: scheduleLogs } = await adminClient.from('schedule_logs').select('user_id').gte('created_at', sixDaysAgo.toISOString());
+  const usersWithSchedule = new Set(scheduleLogs?.map(v => v.user_id) || []);
+  const receivedScheduleUsers = (users || []).filter(u => usersWithSchedule.has(u.id));
+  const pendingScheduleUsers = (users || []).filter(u => !usersWithSchedule.has(u.id));
 
   const startOfToday = new Date();
   startOfToday.setUTCHours(0, 0, 0, 0);
@@ -225,6 +234,99 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
 
       </div>
       
+      {/* Weekly Schedule Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+        
+        {/* Distribute Schedule */}
+        <div className="bg-white rounded-2xl p-8 border border-secondary/30 shadow-sm flex flex-col">
+          <div className="flex items-center gap-3 mb-4">
+            <Calendar className="w-5 h-5 text-secondary" />
+            <h2 className="font-bold text-lg text-foreground">Distribute Weekly Schedule</h2>
+          </div>
+          <p className="text-xs text-foreground/60 mb-6 leading-relaxed">
+            Select events to include in the weekly schedule email. You can batch send 20 at a time to members who haven't received it in the last 6 days.
+          </p>
+          
+          <form action={distributeSchedule} className="flex-1 flex flex-col">
+            <div className="mb-6 bg-gray-50/50 p-4 rounded-xl border border-gray-100 max-h-[250px] overflow-y-auto space-y-3">
+              <label className="block text-[11px] font-bold text-foreground/50 uppercase tracking-widest mb-3">Include Events</label>
+              {events?.map(event => (
+                <label key={event.id} className="flex items-start gap-3 cursor-pointer group">
+                  <div className="pt-0.5">
+                    <input type="checkbox" name="eventIds" value={event.id} defaultChecked className="w-4 h-4 text-secondary rounded border-gray-300 focus:ring-secondary/20 transition-all cursor-pointer" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-foreground group-hover:text-secondary transition-colors">{event.title}</span>
+                    <span className="text-xs text-foreground/60">{['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][event.day_of_week]} at {event.start_time}</span>
+                  </div>
+                </label>
+              ))}
+              {(!events || events.length === 0) && (
+                <p className="text-xs text-foreground/50 italic">No events configured in the schedule.</p>
+              )}
+            </div>
+            
+            <div className="mt-auto space-y-4">
+              <div>
+                <label className="block text-[11px] font-bold text-foreground/50 uppercase tracking-widest mb-2">Select Target</label>
+                <select 
+                  name="userId" 
+                  className="w-full px-4 py-2 border border-secondary/30 rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary text-sm bg-gray-50 outline-none transition-all"
+                >
+                  <option value="all">Unsent Members (Batch 20)</option>
+                  {users?.map(u => (
+                    <option key={u.id} value={u.id}>{u.full_name || u.email}</option>
+                  ))}
+                </select>
+              </div>
+              <SubmitButton loadingText="Sending..." className="w-full border-2 border-secondary text-secondary py-3 rounded-xl text-sm font-bold hover:bg-secondary hover:text-white transition-colors cursor-pointer">
+                Send Schedule Emails
+              </SubmitButton>
+            </div>
+          </form>
+        </div>
+
+        {/* Schedule Tracking Log */}
+        <div className="bg-white rounded-2xl p-8 border border-secondary/30 shadow-sm flex flex-col h-[520px]">
+          <div className="flex items-center gap-3 mb-6">
+            <Clock className="w-5 h-5 text-secondary" />
+            <h2 className="font-bold text-lg text-foreground">Schedule Distribution Status</h2>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="bg-green-50 rounded-xl p-4 border border-green-100 flex flex-col items-center justify-center text-center">
+              <span className="text-3xl font-black text-green-600 mb-1">{receivedScheduleUsers.length}</span>
+              <span className="text-xs font-bold text-green-600/70 uppercase tracking-wider">Received</span>
+            </div>
+            <div className="bg-amber-50 rounded-xl p-4 border border-amber-100 flex flex-col items-center justify-center text-center">
+              <span className="text-3xl font-black text-amber-600 mb-1">{pendingScheduleUsers.length}</span>
+              <span className="text-xs font-bold text-amber-600/70 uppercase tracking-wider">Pending</span>
+            </div>
+          </div>
+          
+          <div className="flex-1 overflow-hidden flex flex-col">
+            <label className="block text-[11px] font-bold text-foreground/50 uppercase tracking-widest mb-3">Pending Members ({pendingScheduleUsers.length})</label>
+            <div className="overflow-y-auto pr-2 space-y-2 flex-1">
+              {pendingScheduleUsers.length === 0 ? (
+                <div className="h-full flex items-center justify-center text-foreground/50 text-sm italic">
+                  All members have received the schedule!
+                </div>
+              ) : (
+                pendingScheduleUsers.map((user, i) => (
+                  <div key={user.id} className="flex justify-between items-center p-3 rounded-xl bg-gray-50/50 border border-gray-100 hover:bg-gray-50 transition-colors">
+                    <span className="font-medium text-sm text-foreground truncate mr-4">
+                      {user.full_name || user.email}
+                    </span>
+                    <div className="w-2 h-2 rounded-full bg-amber-400 shrink-0"></div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+
+      </div>
+
       {/* Upcoming Birthdays */}
       {upcomingBirthdays.length > 0 && (
         <div className="mt-8 bg-white rounded-2xl p-8 border border-secondary/30 shadow-sm">
