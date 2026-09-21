@@ -52,8 +52,8 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     );
     svgContent = (
       <svg viewBox="0 0 100 100" width="100%" height="100%" style={{ position: "absolute", top: 0, left: 0 }}>
-        <path d="M12,5 L88,5 L88,40 C88,75 50,98 50,98 C50,98 12,75 12,40 Z" fill="#223637" />
-        <path d="M17,10 L83,10 L83,40 C83,70 50,89 50,89 C50,89 17,70 17,40 Z" fill="none" stroke="#FCF8F2" strokeWidth="1.5" />
+        <path d="M5,5 L95,5 L95,40 C95,75 50,98 50,98 C50,98 5,75 5,40 Z" fill="#223637" />
+        <path d="M10,10 L90,10 L90,40 C90,70 50,89 50,89 C50,89 10,70 10,40 Z" fill="none" stroke="#FCF8F2" strokeWidth="1.5" />
       </svg>
     );
   } else if (id === "paul") {
@@ -159,10 +159,10 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
         {title && (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", marginTop: id === "christmas_night" ? 20 : 0 }}>
             {icon}
-            <span style={{ color: "#FCF8F2", fontSize: 16, fontWeight: "bold", letterSpacing: 2, marginTop: 4 }}>
+            <span style={{ color: "#FCF8F2", fontSize: id === "upper_room" ? 11 : 16, fontWeight: "bold", letterSpacing: id === "upper_room" ? 1 : 2, marginTop: 4 }}>
               {title}
             </span>
-            <span style={{ color: "#FCF8F2", fontSize: 12, fontWeight: "normal", letterSpacing: 1, opacity: 0.8, marginTop: 2 }}>
+            <span style={{ color: "#FCF8F2", fontSize: id === "upper_room" ? 9 : 12, fontWeight: "normal", letterSpacing: 1, opacity: 0.8, marginTop: 2 }}>
               {subtitle}
             </span>
           </div>
