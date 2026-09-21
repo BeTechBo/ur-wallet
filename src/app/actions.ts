@@ -399,12 +399,18 @@ export async function distributeSchedule(formData: FormData) {
   if (!events || events.length === 0) return;
   
   const daysMap = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  
+  events.sort((a, b) => {
+    if (a.day_of_week !== b.day_of_week) return a.day_of_week - b.day_of_week;
+    return a.start_time.localeCompare(b.start_time);
+  });
+  
   const formattedEvents = events.map(e => ({
     id: e.id,
     title: e.title,
     location: e.location,
     day: daysMap[e.day_of_week] || 'Unknown',
-    time: e.start_time + (e.end_time ?  -  + e.end_time : ''),
+    time: e.end_time ? `${e.start_time} - ${e.end_time}` : e.start_time,
   }));
 
   let targetUsers: any[] = [];

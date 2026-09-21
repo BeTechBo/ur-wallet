@@ -18,42 +18,47 @@ export default function ScheduleEmail({ userName = 'there', events = [] }: Sched
   return (
     <Html>
       <Head />
-      <Preview>Your Weekly Schedule from The Upper Room 🗓️</Preview>
+      <Preview>Your Weekly Schedule from The Upper Room</Preview>
       <Body style={main}>
         <Container style={container}>
           
-          {/* Header */}
-          <Section style={banner}>
+          <Section style={header}>
             <Heading style={title}>The Upper Room</Heading>
-            <Heading style={subtitle}>Weekly Schedule</Heading>
+            <Text style={subtitle}>Weekly Schedule</Text>
           </Section>
 
           <Section style={body}>
             <Text style={greeting}>Hello {userName},</Text>
             <Text style={text}>
-              Here is the schedule for our upcoming meetings this week. We can't wait to see you there!
+              Here is the schedule for our upcoming meetings this week. We hope you can join us!
             </Text>
             
             <div style={eventList}>
               {events.length === 0 ? (
                 <Text style={text}>No events scheduled for this week.</Text>
               ) : (
-                events.map((event, index) => (
-                  <div key={event.id} style={index !== events.length - 1 ? eventCardWithBorder : eventCard}>
+                events.map((event) => (
+                  <div key={event.id} style={eventCard}>
                     <Text style={eventTitle}>{event.title}</Text>
-                    <Text style={eventDetail}><strong>🗓️ When:</strong> {event.day} at {event.time}</Text>
-                    <Text style={eventDetail}><strong>📍 Where:</strong> {event.location}</Text>
+                    <div style={eventDetailsGroup}>
+                      <Text style={eventDetail}>
+                        <span style={iconSpan}>📅</span> {event.day} at {event.time}
+                      </Text>
+                      <Text style={eventDetail}>
+                        <span style={iconSpan}>📍</span> {event.location}
+                      </Text>
+                    </div>
                   </div>
                 ))
               )}
             </div>
             
-            <div style={footerRow}>
-              <Text style={footer}>
+            <Section style={footer}>
+              <Text style={footerText}>
                 Stay blessed,<br/>
-                <strong>The Upper Room Family</strong>
+                The Upper Room Family
               </Text>
-            </div>
+            </Section>
           </Section>
         </Container>
       </Body>
@@ -62,104 +67,94 @@ export default function ScheduleEmail({ userName = 'there', events = [] }: Sched
 }
 
 const main = {
-  backgroundColor: '#f6f9fc',
-  fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
+  backgroundColor: '#f9fafb',
+  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif',
   padding: '40px 0',
 }
 
 const container = {
   backgroundColor: '#ffffff',
   margin: '0 auto',
-  borderRadius: '12px',
-  maxWidth: '540px',
-  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
-  overflow: 'hidden',
-  borderTop: '6px solid #416047',
+  border: '1px solid #e5e7eb',
+  borderRadius: '8px',
+  maxWidth: '500px',
 }
 
-const banner = {
-  backgroundColor: '#FCF8F2',
-  padding: '30px 20px',
-  textAlign: 'center' as const,
-  borderBottom: '1px solid #eaeaea',
+const header = {
+  padding: '32px 32px 24px 32px',
+  borderBottom: '1px solid #e5e7eb',
 }
 
 const title = {
-  color: '#416047',
-  fontSize: '20px',
-  fontWeight: 'bold',
-  margin: '0 0 5px 0',
-  textTransform: 'uppercase' as const,
-  letterSpacing: '1px',
+  fontSize: '22px',
+  fontWeight: '600',
+  color: '#111827',
+  margin: '0 0 4px 0',
 }
 
 const subtitle = {
-  color: '#D97746',
-  fontSize: '28px',
-  fontWeight: '900',
+  fontSize: '15px',
+  color: '#6b7280',
   margin: '0',
 }
 
 const body = {
-  padding: '30px',
+  padding: '32px',
 }
 
 const greeting = {
-  color: '#333333',
-  fontSize: '18px',
-  fontWeight: 'bold',
-  marginBottom: '10px',
+  fontSize: '16px',
+  color: '#111827',
+  margin: '0 0 16px 0',
 }
 
 const text = {
-  color: '#555555',
-  fontSize: '16px',
-  lineHeight: '1.5',
-  marginBottom: '25px',
+  fontSize: '15px',
+  lineHeight: '24px',
+  color: '#374151',
+  margin: '0 0 32px 0',
 }
 
 const eventList = {
-  margin: '0 0 35px 0',
-}
-
-const eventCardWithBorder = {
-  padding: '20px',
-  backgroundColor: '#ffffff',
-  border: '1px solid #eaeaea',
-  borderRadius: '8px',
-  marginBottom: '15px',
-  borderLeft: '4px solid #D97746',
+  margin: '0 0 32px 0',
 }
 
 const eventCard = {
-  padding: '20px',
-  backgroundColor: '#ffffff',
-  border: '1px solid #eaeaea',
-  borderRadius: '8px',
-  borderLeft: '4px solid #D97746',
+  marginBottom: '24px',
 }
 
 const eventTitle = {
-  color: '#416047',
-  fontSize: '18px',
-  fontWeight: 'bold',
-  margin: '0 0 10px 0',
+  fontSize: '16px',
+  fontWeight: '600',
+  color: '#111827',
+  margin: '0 0 8px 0',
+}
+
+const eventDetailsGroup = {
+  display: 'flex',
+  flexDirection: 'column' as const,
+  gap: '4px',
 }
 
 const eventDetail = {
-  color: '#555555',
-  fontSize: '15px',
-  margin: '0 0 5px 0',
+  fontSize: '14px',
+  color: '#4b5563',
+  margin: '0',
 }
 
-const footerRow = {
-  borderTop: '1px solid #eaeaea',
-  paddingTop: '20px',
+const iconSpan = {
+  display: 'inline-block',
+  width: '20px',
 }
 
 const footer = {
-  color: '#888888',
-  fontSize: '15px',
-  lineHeight: '1.5',
+  borderTop: '1px solid #e5e7eb',
+  paddingTop: '24px',
+}
+
+const footerText = {
+  fontSize: '14px',
+  lineHeight: '22px',
+  color: '#6b7280',
   margin: '0',
 }
