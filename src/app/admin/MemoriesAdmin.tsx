@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { Plus, Upload, Trash2, FolderOpen, X, Loader2 } from 'lucide-react'
+import { Plus, Upload, Trash2, FolderOpen, X, Loader2, Camera } from 'lucide-react'
 
 interface Photo {
   id: string
@@ -39,6 +39,9 @@ export default function MemoriesAdmin({ initialAlbums }: MemoriesAdminProps) {
   const [uploadProgress, setUploadProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const coverInputRef = useRef<HTMLInputElement>(null)
+  const [targetCoverAlbumId, setTargetCoverAlbumId] = useState<string | null>(null)
+  const [coverUploadingAlbumId, setCoverUploadingAlbumId] = useState<string | null>(null)
 
   async function handleCreateAlbum() {
     if (!newTitle.trim()) return
@@ -153,8 +156,71 @@ export default function MemoriesAdmin({ initialAlbums }: MemoriesAdminProps) {
     setAlbums(prev => prev.map(a => a.id === selectedAlbum.id ? updated : a))
   }
 
+  async function handleCoverFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !targetCoverAlbumId) return
+    setError(null)
+    setCoverUploadingAlbumId(targetCoverAlbumId)
+
+    try {
+      const ext = file.name.split('.').pop()
+      const path = `${targetCoverAlbumId}/cover_${Date.now()}.${ext}`
+      const { error: upErr } = await supabase.storage.from('memories').upload(path, file, { upsert: true })
+      if (upErr) {
+        setError(`Failed to upload cover: ${upErr.message}. Ensure 'memories' bucket exists in Supabase.`)
+        setCoverUploadingAlbumId(null)
+        return
+      }
+
+      const { data: urlData } = supabase.storage.from('memories').getPublicUrl(path)
+      const publicUrl = urlData.publicUrl
+
+      // Insert into photos table as well
+      const { data: photoRow } = await supabase
+        .from('memory_photos')
+        .insert({ album_id: targetCoverAlbumId, url: publicUrl })
+        .select()
+        .single()
+
+      // Update album cover_url
+      const { error: covErr } = await supabase
+        .from('memory_albums')
+        .update({ cover_url: publicUrl })
+        .eq('id', targetCoverAlbumId)
+
+      if (covErr) {
+        setError(`Failed to set cover: ${covErr.message}`)
+      } else {
+        setAlbums(prev =>
+          prev.map(a => {
+            if (a.id === targetCoverAlbumId) {
+              const updatedPhotos = photoRow ? [...a.memory_photos, photoRow] : a.memory_photos
+              return { ...a, cover_url: publicUrl, memory_photos: updatedPhotos }
+            }
+            return a
+          })
+        )
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Error uploading cover photo')
+    } finally {
+      setCoverUploadingAlbumId(null)
+      setTargetCoverAlbumId(null)
+      if (coverInputRef.current) coverInputRef.current.value = ''
+    }
+  }
+
   return (
     <div className="bg-white rounded-2xl p-8 border border-secondary/30 shadow-sm">
+      {/* Hidden input for changing cover directly from album list */}
+      <input
+        ref={coverInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleCoverFileChange}
+      />
+
       {error && (
         <div className="mb-6 p-4 bg-red-50 text-red-700 text-sm rounded-xl border border-red-200 flex items-center justify-between">
           <span>{error}</span>
@@ -230,23 +296,77 @@ export default function MemoriesAdmin({ initialAlbums }: MemoriesAdminProps) {
           )}
           {albums.map(album => (
             <div key={album.id} className="flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors">
-              <div
-                className="w-16 h-16 rounded-xl bg-gray-100 overflow-hidden shrink-0 cursor-pointer"
-                onClick={() => setSelectedAlbum(album)}
-              >
-                {album.cover_url
-                  ? <img src={album.cover_url} alt="" className="w-full h-full object-cover" />
-                  : <div className="w-full h-full flex items-center justify-center"><FolderOpen className="w-6 h-6 text-gray-300" /></div>
-                }
+              {/* Cover Thumbnail with quick-change button */}
+              <div className="relative group w-16 h-16 rounded-xl bg-gray-100 overflow-hidden shrink-0">
+                {album.cover_url ? (
+                  <img src={album.cover_url} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <FolderOpen className="w-6 h-6 text-gray-300" />
+                  </div>
+                )}
+                <button
+                  type="button"
+                  title="Change Cover Photo"
+                  disabled={coverUploadingAlbumId === album.id}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setTargetCoverAlbumId(album.id)
+                    coverInputRef.current?.click()
+                  }}
+                  className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[10px] font-bold cursor-pointer"
+                >
+                  {coverUploadingAlbumId === album.id ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <Camera className="w-4 h-4 mb-0.5" />
+                      <span>Change</span>
+                    </>
+                  )}
+                </button>
               </div>
+
+              {/* Title and details (click to open album) */}
               <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setSelectedAlbum(album)}>
-                <p className="font-bold text-foreground text-sm truncate">{album.title}</p>
-                {album.event_date && <p className="text-xs text-foreground/50 mt-0.5">{new Date(album.event_date + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>}
+                <p className="font-bold text-foreground text-sm truncate hover:text-secondary transition-colors">{album.title}</p>
+                {album.event_date && (
+                  <p className="text-xs text-foreground/50 mt-0.5">
+                    {new Date(album.event_date + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                  </p>
+                )}
                 <p className="text-xs text-foreground/40 mt-0.5">{album.memory_photos.length} photo{album.memory_photos.length !== 1 ? 's' : ''}</p>
               </div>
-              <button onClick={() => handleDeleteAlbum(album.id)} className="text-red-400 hover:text-red-600 p-2 transition-colors shrink-0">
-                <Trash2 className="w-4 h-4" />
-              </button>
+
+              {/* Actions: Change Cover button & Delete */}
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  type="button"
+                  title="Change Cover Photo"
+                  disabled={coverUploadingAlbumId === album.id}
+                  onClick={() => {
+                    setTargetCoverAlbumId(album.id)
+                    coverInputRef.current?.click()
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-secondary/30 text-secondary text-xs font-bold hover:bg-secondary hover:text-white transition-colors"
+                >
+                  {coverUploadingAlbumId === album.id ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Camera className="w-3.5 h-3.5" />
+                  )}
+                  <span className="hidden sm:inline">Change Cover</span>
+                </button>
+
+                <button
+                  type="button"
+                  title="Delete Album"
+                  onClick={() => handleDeleteAlbum(album.id)}
+                  className="text-red-400 hover:text-red-600 p-2 transition-colors rounded-lg hover:bg-red-50"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           ))}
         </div>
