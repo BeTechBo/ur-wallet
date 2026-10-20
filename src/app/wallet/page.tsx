@@ -1,4 +1,4 @@
-import { Trophy, History, BookOpen, Music, Book, Home, HeartHandshake, Package, Flame, Star, User, Calendar, Lightbulb } from 'lucide-react';
+import { Trophy, History, BookOpen, Music, Book, Home, HeartHandshake, Package, Flame, Star, User, Calendar, Lightbulb, Images } from 'lucide-react';
 import AnimatedWallet from '@/components/AnimatedWallet';
 import URCoin from '@/components/URCoin';
 import { createClient } from '@/utils/supabase/server';
@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation';
 import { PACKAGES } from '@/lib/packages';
 import Link from 'next/link';
 import ScheduleView from './ScheduleView';
+import MemoriesView from './MemoriesView';
 
 const NaqoosIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -66,6 +67,18 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
     events = data;
   } catch (e) {
     console.error('Events table missing');
+  }
+
+  // Fetch memory albums
+  let memoryAlbums: any[] = [];
+  try {
+    const { data } = await supabase
+      .from('memory_albums')
+      .select('*, memory_photos(id, url)')
+      .order('event_date', { ascending: false });
+    memoryAlbums = data || [];
+  } catch (e) {
+    console.error('Memory albums table missing');
   }
 
   // Calculate Rank
@@ -129,6 +142,7 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
           { id: 'wallet', label: 'UR Wallet', icon: Trophy },
           { id: 'verses', label: 'Verses Collected', icon: BookOpen },
           { id: 'badges', label: 'Badges', icon: Package },
+          { id: 'memories', label: 'Memories', icon: Images },
           { id: 'schedule', label: 'Schedule', icon: Calendar }
         ].map(tab => {
           const isActive = currentTab === tab.id;
@@ -416,6 +430,16 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
               ))
             )}
           </div>
+        </div>
+      )}
+
+      {currentTab === 'memories' && (
+        <div className="bg-zakhrafa rounded-2xl p-8 border border-secondary/30 shadow-sm">
+          <div className="flex items-center gap-3 mb-8 border-b border-gray-100 pb-4">
+            <Images className="w-5 h-5 text-secondary" />
+            <h2 className="font-bold text-xl text-foreground">Memories</h2>
+          </div>
+          <MemoriesView albums={memoryAlbums} />
         </div>
       )}
 

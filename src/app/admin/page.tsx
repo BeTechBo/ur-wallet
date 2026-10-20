@@ -3,6 +3,7 @@ import { registerMember, distributeVerses, sendBirthdayAction, distributeSchedul
 import { createAdminClient } from '@/utils/supabase/admin';
 import AwardForm from './AwardForm';
 import AdminSchedule from './AdminSchedule';
+import MemoriesAdmin from './MemoriesAdmin';
 import { SubmitButton } from '@/components/SubmitButton';
 
 export default async function AdminDashboard(props: { searchParams?: Promise<{ error?: string }> }) {
@@ -10,6 +11,16 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
   const { data: users } = await adminClient.from('profiles').select('id, email, full_name, date_of_birth').eq('role', 'user');
   const { data: allTransactions } = await adminClient.from('transactions').select('user_id, points_added, event_name');
   const { data: events } = await adminClient.from('events').select('*');
+
+  // Memory albums
+  let memoryAlbums: any[] = [];
+  try {
+    const { data } = await adminClient
+      .from('memory_albums')
+      .select('*, memory_photos(id, url)')
+      .order('event_date', { ascending: false });
+    memoryAlbums = data || [];
+  } catch (e) {}
 
   // Schedule tracking
   const sixDaysAgo = new Date();
@@ -414,6 +425,12 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
           </table>
         </div>
       </div>
+
+      {/* Memories Management */}
+      <div className="mt-8">
+        <MemoriesAdmin initialAlbums={memoryAlbums} />
+      </div>
+
     </div>
   );
 }
