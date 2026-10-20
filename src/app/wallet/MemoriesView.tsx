@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { X, ChevronLeft, ChevronRight, Images } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { X, ChevronLeft, ChevronRight, Images, Folder, Calendar } from 'lucide-react'
 
 interface Photo {
   id: string
@@ -10,6 +10,7 @@ interface Photo {
 
 interface Album {
   id: string
+  parent_id?: string | null
   title: string
   description: string | null
   event_date: string | null
@@ -22,32 +23,73 @@ interface MemoriesViewProps {
 }
 
 export default function MemoriesView({ albums }: MemoriesViewProps) {
-  const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null)
+  // history of album IDs: [] = root (e.g. Fall 2026, Spring 2026)
+  const [history, setHistory] = useState<string[]>([])
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
 
-  // Close lightbox on Escape
+  const currentAlbumId = history.length > 0 ? history[history.length - 1] : null
+  const currentAlbum = currentAlbumId ? albums.find(a => a.id === currentAlbumId) || null : null
+
+  // Sub-albums inside the current view
+  const currentSubAlbums = albums.filter(a => {
+    if (currentAlbumId === null) {
+      return !a.parent_id
+    }
+    return a.parent_id === currentAlbumId
+  })
+
+  // Direct photos in current album
+  const currentPhotos = currentAlbum?.memory_photos || []
+
+  // Helper to count all photos recursively for an album
+  function getTotalPhotos(album: Album): number {
+    const directCount = album.memory_photos?.length || 0
+    const children = albums.filter(a => a.parent_id === album.id)
+    const childCount = children.reduce((sum, child) => sum + getTotalPhotos(child), 0)
+    return directCount + childCount
+  }
+
+  // Helper to get effective cover photo (own cover or first child's cover)
+  function getEffectiveCover(album: Album): string | null {
+    if (album.cover_url) return album.cover_url
+    if (album.memory_photos?.length > 0) return album.memory_photos[0].url
+    const children = albums.filter(a => a.parent_id === album.id)
+    for (const child of children) {
+      const childCover = getEffectiveCover(child)
+      if (childCover) return childCover
+    }
+    return null
+  }
+
+  // Keyboard navigation for lightbox
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         if (lightboxIndex !== null) setLightboxIndex(null)
-        else setSelectedAlbum(null)
+        else if (history.length > 0) setHistory(prev => prev.slice(0, -1))
       }
-      if (e.key === 'ArrowRight' && lightboxIndex !== null && selectedAlbum) {
-        setLightboxIndex(prev =>
-          prev !== null ? (prev + 1) % selectedAlbum.memory_photos.length : null
-        )
+      if (e.key === 'ArrowRight' && lightboxIndex !== null && currentPhotos.length > 0) {
+        setLightboxIndex(prev => (prev !== null ? (prev + 1) % currentPhotos.length : null))
       }
-      if (e.key === 'ArrowLeft' && lightboxIndex !== null && selectedAlbum) {
+      if (e.key === 'ArrowLeft' && lightboxIndex !== null && currentPhotos.length > 0) {
         setLightboxIndex(prev =>
-          prev !== null
-            ? (prev - 1 + selectedAlbum.memory_photos.length) % selectedAlbum.memory_photos.length
-            : null
+          prev !== null ? (prev - 1 + currentPhotos.length) % currentPhotos.length : null
         )
       }
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [lightboxIndex, selectedAlbum])
+  }, [lightboxIndex, currentPhotos, history])
+
+  // Breadcrumbs chain
+  const breadcrumbs = history.map((id, index) => {
+    const alb = albums.find(a => a.id === id)
+    return {
+      id,
+      title: alb?.title || 'Album',
+      targetHistory: history.slice(0, index + 1)
+    }
+  })
 
   if (albums.length === 0) {
     return (
@@ -61,152 +103,219 @@ export default function MemoriesView({ albums }: MemoriesViewProps) {
 
   return (
     <div>
-      {/* Album Grid */}
-      {!selectedAlbum && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {albums.map(album => (
-            <button
-              key={album.id}
-              onClick={() => setSelectedAlbum(album)}
-              className="group relative rounded-2xl overflow-hidden aspect-[4/3] bg-gray-100 shadow-sm border border-secondary/10 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer text-left"
-            >
-              {album.cover_url ? (
-                <img
-                  src={album.cover_url}
-                  alt={album.title}
-                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              ) : (
-                <div className="absolute inset-0 bg-gradient-to-br from-secondary/40 to-secondary/20 flex items-center justify-center">
-                  <Images className="w-12 h-12 text-secondary/50" />
-                </div>
-              )}
-              {/* Gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
-              {/* Text */}
-              <div className="absolute bottom-0 left-0 right-0 p-5">
-                <p className="text-white font-bold text-lg leading-tight">{album.title}</p>
-                {album.event_date && (
-                  <p className="text-white/70 text-sm mt-1">
-                    {new Date(album.event_date + 'T00:00:00').toLocaleDateString('en-US', {
-                      year: 'numeric', month: 'long', day: 'numeric'
-                    })}
-                  </p>
+      {/* Breadcrumb Navigation */}
+      {history.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 mb-6 text-sm">
+          <button
+            onClick={() => setHistory([])}
+            className="flex items-center gap-1 text-foreground/60 hover:text-secondary font-semibold transition-colors cursor-pointer"
+          >
+            <span>All Memories</span>
+          </button>
+          {breadcrumbs.map((crumb, idx) => {
+            const isLast = idx === breadcrumbs.length - 1
+            return (
+              <div key={crumb.id} className="flex items-center gap-2">
+                <span className="text-foreground/30">/</span>
+                {isLast ? (
+                  <span className="font-bold text-foreground truncate max-w-[200px]">{crumb.title}</span>
+                ) : (
+                  <button
+                    onClick={() => setHistory(crumb.targetHistory)}
+                    className="text-foreground/60 hover:text-secondary font-semibold transition-colors cursor-pointer truncate max-w-[150px]"
+                  >
+                    {crumb.title}
+                  </button>
                 )}
-                <p className="text-white/60 text-xs mt-1">
-                  {album.memory_photos.length} photo{album.memory_photos.length !== 1 ? 's' : ''}
-                </p>
               </div>
-            </button>
-          ))}
+            )
+          })}
         </div>
       )}
 
-      {/* Album View (photo grid) */}
-      {selectedAlbum && lightboxIndex === null && (
-        <div>
-          <button
-            onClick={() => setSelectedAlbum(null)}
-            className="flex items-center gap-2 text-foreground/60 hover:text-foreground text-sm font-semibold mb-6 transition-colors"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            Back to Albums
-          </button>
-          <div className="mb-6">
-            <h2 className="text-2xl font-black text-foreground">{selectedAlbum.title}</h2>
-            {selectedAlbum.event_date && (
-              <p className="text-foreground/50 text-sm mt-1">
-                {new Date(selectedAlbum.event_date + 'T00:00:00').toLocaleDateString('en-US', {
-                  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-                })}
-              </p>
-            )}
-            {selectedAlbum.description && (
-              <p className="text-foreground/70 text-sm mt-2 leading-relaxed">{selectedAlbum.description}</p>
-            )}
-          </div>
-
-          {selectedAlbum.memory_photos.length === 0 ? (
-            <div className="flex flex-col items-center py-16 text-foreground/40">
-              <Images className="w-10 h-10 mb-3 opacity-30" />
-              <p className="text-sm">No photos in this album yet.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {selectedAlbum.memory_photos.map((photo, idx) => (
-                <button
-                  key={photo.id}
-                  onClick={() => setLightboxIndex(idx)}
-                  className="aspect-square rounded-xl overflow-hidden bg-gray-100 hover:opacity-90 hover:scale-[1.02] transition-all duration-200 cursor-pointer"
-                >
-                  <img
-                    src={photo.url}
-                    alt={`Photo ${idx + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-              ))}
-            </div>
+      {/* Album Header Info if viewing inside an album */}
+      {currentAlbum && (
+        <div className="mb-8">
+          <h2 className="text-2xl font-black text-foreground">{currentAlbum.title}</h2>
+          {currentAlbum.event_date && (
+            <p className="text-foreground/50 text-sm mt-1 flex items-center gap-1.5">
+              <Calendar className="w-4 h-4 text-secondary" />
+              {new Date(currentAlbum.event_date + 'T00:00:00').toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </p>
+          )}
+          {currentAlbum.description && (
+            <p className="text-foreground/70 text-sm mt-2 leading-relaxed">{currentAlbum.description}</p>
           )}
         </div>
       )}
 
-      {/* Lightbox */}
-      {selectedAlbum && lightboxIndex !== null && (
+      {/* Sub-Albums Grid (e.g. Fall 2026 seasons, or nights within Fall 2026) */}
+      {currentSubAlbums.length > 0 && (
+        <div className="mb-10">
+          {currentAlbum && currentPhotos.length > 0 && (
+            <h3 className="text-sm font-bold text-foreground/60 uppercase tracking-wider mb-4 flex items-center gap-2">
+              <Folder className="w-4 h-4 text-secondary" />
+              Nights / Gatherings
+            </h3>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {currentSubAlbums.map(sub => {
+              const cover = getEffectiveCover(sub)
+              const childSubCount = albums.filter(a => a.parent_id === sub.id).length
+              const totalPhotos = getTotalPhotos(sub)
+
+              return (
+                <button
+                  key={sub.id}
+                  onClick={() => setHistory(prev => [...prev, sub.id])}
+                  className="group relative rounded-2xl overflow-hidden aspect-[4/3] bg-gray-100 shadow-sm border border-secondary/15 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer text-left flex flex-col justify-end"
+                >
+                  {cover ? (
+                    <img
+                      src={cover}
+                      alt={sub.title}
+                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-secondary/30 via-secondary/10 to-primary/20 flex items-center justify-center">
+                      <Folder className="w-12 h-12 text-secondary/40" />
+                    </div>
+                  )}
+
+                  {/* Gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+
+                  {/* Text details */}
+                  <div className="relative z-10 p-5">
+                    <p className="text-white font-black text-lg leading-tight group-hover:text-amber-200 transition-colors">
+                      {sub.title}
+                    </p>
+                    {sub.event_date && (
+                      <p className="text-white/80 text-xs mt-1">
+                        {new Date(sub.event_date + 'T00:00:00').toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </p>
+                    )}
+                    <div className="flex items-center gap-2 text-white/60 text-xs mt-2 font-medium">
+                      {childSubCount > 0 && (
+                        <span>
+                          {childSubCount} {childSubCount === 1 ? 'event' : 'events'}
+                        </span>
+                      )}
+                      {childSubCount > 0 && <span>•</span>}
+                      <span>
+                        {totalPhotos} {totalPhotos === 1 ? 'photo' : 'photos'}
+                      </span>
+                    </div>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Direct Photos in this Album */}
+      {currentPhotos.length > 0 && (
+        <div>
+          {currentSubAlbums.length > 0 && (
+            <h3 className="text-sm font-bold text-foreground/60 uppercase tracking-wider mb-4 flex items-center gap-2">
+              <Images className="w-4 h-4 text-secondary" />
+              Photos ({currentPhotos.length})
+            </h3>
+          )}
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            {currentPhotos.map((photo, idx) => (
+              <button
+                key={photo.id}
+                onClick={() => setLightboxIndex(idx)}
+                className="aspect-square rounded-xl overflow-hidden bg-gray-100 hover:opacity-90 hover:scale-[1.02] transition-all duration-200 cursor-pointer shadow-sm border border-black/5"
+              >
+                <img
+                  src={photo.url}
+                  alt={`Photo ${idx + 1}`}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Empty State inside an empty album */}
+      {currentAlbum && currentSubAlbums.length === 0 && currentPhotos.length === 0 && (
+        <div className="flex flex-col items-center py-16 text-foreground/40">
+          <Images className="w-12 h-12 mb-3 opacity-30" />
+          <p className="text-base font-semibold">No photos or nights in this album yet.</p>
+          <p className="text-xs mt-1">Check back soon for memories!</p>
+        </div>
+      )}
+
+      {/* Full-screen Lightbox */}
+      {lightboxIndex !== null && currentPhotos[lightboxIndex] && (
         <div
-          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
           onClick={() => setLightboxIndex(null)}
         >
           {/* Close button */}
           <button
             onClick={() => setLightboxIndex(null)}
-            className="absolute top-5 right-5 text-white/70 hover:text-white transition-colors z-10"
+            className="absolute top-5 right-5 text-white/70 hover:text-white transition-colors z-20 p-2 cursor-pointer"
           >
-            <X className="w-8 h-8" />
+            <X className="w-7 h-7" />
           </button>
 
           {/* Counter */}
-          <p className="absolute top-5 left-5 text-white/60 text-sm font-medium">
-            {lightboxIndex + 1} / {selectedAlbum.memory_photos.length}
+          <p className="absolute top-6 left-6 text-white/70 text-sm font-bold tracking-wider">
+            {lightboxIndex + 1} / {currentPhotos.length}
           </p>
 
           {/* Prev button */}
-          {selectedAlbum.memory_photos.length > 1 && (
+          {currentPhotos.length > 1 && (
             <button
               onClick={e => {
                 e.stopPropagation()
                 setLightboxIndex(prev =>
-                  prev !== null
-                    ? (prev - 1 + selectedAlbum.memory_photos.length) % selectedAlbum.memory_photos.length
-                    : 0
+                  prev !== null ? (prev - 1 + currentPhotos.length) % currentPhotos.length : 0
                 )
               }}
-              className="absolute left-4 text-white/70 hover:text-white transition-colors z-10 p-2"
+              className="absolute left-4 text-white/70 hover:text-white transition-colors z-20 p-2 cursor-pointer bg-black/40 hover:bg-black/70 rounded-full"
             >
-              <ChevronLeft className="w-10 h-10" />
+              <ChevronLeft className="w-8 h-8" />
             </button>
           )}
 
           {/* Image */}
           <img
-            src={selectedAlbum.memory_photos[lightboxIndex].url}
+            src={currentPhotos[lightboxIndex].url}
             alt={`Photo ${lightboxIndex + 1}`}
-            className="max-h-[90vh] max-w-[90vw] object-contain rounded-lg shadow-2xl"
+            className="max-h-[88vh] max-w-[92vw] object-contain rounded-lg shadow-2xl"
             onClick={e => e.stopPropagation()}
           />
 
           {/* Next button */}
-          {selectedAlbum.memory_photos.length > 1 && (
+          {currentPhotos.length > 1 && (
             <button
               onClick={e => {
                 e.stopPropagation()
                 setLightboxIndex(prev =>
-                  prev !== null ? (prev + 1) % selectedAlbum.memory_photos.length : 0
+                  prev !== null ? (prev + 1) % currentPhotos.length : 0
                 )
               }}
-              className="absolute right-4 text-white/70 hover:text-white transition-colors z-10 p-2"
+              className="absolute right-4 text-white/70 hover:text-white transition-colors z-20 p-2 cursor-pointer bg-black/40 hover:bg-black/70 rounded-full"
             >
-              <ChevronRight className="w-10 h-10" />
+              <ChevronRight className="w-8 h-8" />
             </button>
           )}
         </div>

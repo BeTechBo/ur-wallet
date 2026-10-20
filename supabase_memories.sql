@@ -4,12 +4,16 @@ create extension if not exists "uuid-ossp";
 -- 1. Create Memory Albums Table
 create table if not exists public.memory_albums (
   id uuid default uuid_generate_v4() primary key,
+  parent_id uuid references public.memory_albums(id) on delete cascade,
   title text not null,
   description text,
   event_date date,
   cover_url text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
+
+-- Ensure parent_id column exists if table was already created
+alter table public.memory_albums add column if not exists parent_id uuid references public.memory_albums(id) on delete cascade;
 
 -- 2. Create Memory Photos Table
 create table if not exists public.memory_photos (
