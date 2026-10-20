@@ -339,7 +339,7 @@ export default function MemoriesAdmin({ initialAlbums }: MemoriesAdminProps) {
               </div>
 
               {/* Actions: Change Cover button & Delete */}
-              <div className="flex items-center gap-1 shrink-0">
+              <div className="flex items-center gap-2 shrink-0">
                 <button
                   type="button"
                   title="Change Cover Photo"
@@ -348,21 +348,21 @@ export default function MemoriesAdmin({ initialAlbums }: MemoriesAdminProps) {
                     setTargetCoverAlbumId(album.id)
                     coverInputRef.current?.click()
                   }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-secondary/30 text-secondary text-xs font-bold hover:bg-secondary hover:text-white transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-secondary/10 text-secondary text-xs font-bold hover:bg-secondary hover:text-white transition-all cursor-pointer whitespace-nowrap"
                 >
                   {coverUploadingAlbumId === album.id ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   ) : (
                     <Camera className="w-3.5 h-3.5" />
                   )}
-                  <span className="hidden sm:inline">Change Cover</span>
+                  <span>Change Cover</span>
                 </button>
 
                 <button
                   type="button"
                   title="Delete Album"
                   onClick={() => handleDeleteAlbum(album.id)}
-                  className="text-red-400 hover:text-red-600 p-2 transition-colors rounded-lg hover:bg-red-50"
+                  className="text-red-400 hover:text-red-600 p-2 transition-colors rounded-xl hover:bg-red-50 cursor-pointer"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
