@@ -537,7 +537,11 @@ export async function distributeLeaderboard(formData: FormData) {
   const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
   // 3. Send emails
+  const dateStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
   for (const user of targetUsers) {
+    const sendId = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+
     try {
       // Log distribution
       await adminClient.from('leaderboard_logs').insert({ user_id: user.id });
@@ -551,13 +555,17 @@ export async function distributeLeaderboard(formData: FormData) {
         leaders: top5,
         customNote,
         walletUrl: `${siteUrl}/wallet`,
+        sendId,
       }) as React.ReactElement);
 
       await transporter.sendMail({
         from: `"The Upper Room" <${process.env.GMAIL_USER}>`,
         to: user.email,
-        subject: 'Celebrating Our Top 5! 🏆 | The Upper Room',
+        subject: `Celebrating Our Top 5! 🏆 (${dateStr}) | The Upper Room`,
         html: htmlStr,
+        headers: {
+          'X-Entity-Ref-ID': sendId,
+        },
       });
     } catch (e) {
       console.error('Leaderboard email failed to send to ' + user.email + ':', e);

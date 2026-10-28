@@ -12,6 +12,7 @@ interface LeaderboardEmailProps {
   leaders?: LeaderboardMember[];
   customNote?: string;
   walletUrl?: string;
+  sendId?: string;
 }
 
 export default function LeaderboardEmail({
@@ -25,17 +26,28 @@ export default function LeaderboardEmail({
   ],
   customNote,
   walletUrl = 'https://urwallet.vercel.app/wallet',
+  sendId,
 }: LeaderboardEmailProps) {
   const top1 = leaders.find(l => l.rank === 1) || leaders[0];
   const top2 = leaders.find(l => l.rank === 2) || leaders[1];
   const top3 = leaders.find(l => l.rank === 3) || leaders[2];
   const remaining = leaders.filter(l => l.rank > 3);
 
+  const uniqueToken = sendId || `${Date.now()}`;
+
   return (
     <Html>
-      <Head />
+      <Head>
+        <meta name="format-detection" content="telephone=no, date=no, address=no, email=no" />
+        <meta name="color-scheme" content="light dark" />
+      </Head>
       <Preview>Celebrating our Top 5 fellowship champions this week! 🏆✨</Preview>
       <Body style={main}>
+        {/* Anti-preview-leak spacer */}
+        <div style={{ display: 'none', maxHeight: 0, overflow: 'hidden', opacity: 0, lineHeight: '1px', fontSize: '1px' }}>
+          {Array.from({ length: 80 }).map(() => '\u200C\u00A0').join('')}
+        </div>
+
         <Container style={container}>
           
           {/* Celebratory Banner */}
@@ -59,87 +71,102 @@ export default function LeaderboardEmail({
               </div>
             )}
 
-            {/* PODIUM: 1st Place Spotlight */}
-            {top1 && (
-              <div style={firstPlaceCard}>
-                <div style={medalBadgeGold}>👑 1ST PLACE</div>
-                <Text style={firstPlaceName}>{top1.name}</Text>
-                <div style={firstPlacePointsPill}>
-                  <span style={pointsValueGold}>{top1.points}</span>
-                  <span style={pointsLabelGold}>UR-COINS</span>
+            {/* UNIFIED LEADERBOARD CONTAINER */}
+            <div style={leaderboardContainer}>
+              
+              {/* PODIUM: 1st Place Spotlight */}
+              {top1 && (
+                <div style={firstPlaceCard}>
+                  <div style={medalBadgeGold}>👑 1ST PLACE</div>
+                  <Text style={firstPlaceName}>{top1.name}</Text>
+                  <div style={firstPlacePointsPill}>
+                    <span style={pointsValueGold}>{top1.points}</span>
+                    <span style={pointsLabelGold}>UR-COINS</span>
+                  </div>
                 </div>
+              )}
+
+              {/* Anti-thread divider token prevents Gmail from treating 2nd-5th as quoted text */}
+              <div style={antiThreadToken}>
+                &#8203;[{uniqueToken}-p23]&#8203;
               </div>
-            )}
 
-            {/* 2nd & 3rd Place Cards (Using Table for 100% email client compatibility) */}
-            {(top2 || top3) && (
-              <table width="100%" border={0} cellPadding={0} cellSpacing={0} style={runnerUpTable}>
-                <tbody>
-                  <tr>
-                    {top2 && (
-                      <td width={top3 ? '50%' : '100%'} valign="top" style={{ paddingRight: top3 ? '6px' : '0' }}>
-                        <div style={secondPlaceCard}>
-                          <div style={medalBadgeSilver}>🥈 2nd Place</div>
-                          <Text style={runnerUpName}>{top2.name}</Text>
-                          <div style={pointsPillSilver}>
-                            <strong style={runnerUpPoints}>{top2.points}</strong>
-                            <span style={runnerUpLabel}>coins</span>
-                          </div>
-                        </div>
-                      </td>
-                    )}
-                    {top3 && (
-                      <td width={top2 ? '50%' : '100%'} valign="top" style={{ paddingLeft: top2 ? '6px' : '0' }}>
-                        <div style={thirdPlaceCard}>
-                          <div style={medalBadgeBronze}>🥉 3rd Place</div>
-                          <Text style={runnerUpName}>{top3.name}</Text>
-                          <div style={pointsPillBronze}>
-                            <strong style={runnerUpPoints}>{top3.points}</strong>
-                            <span style={runnerUpLabel}>coins</span>
-                          </div>
-                        </div>
-                      </td>
-                    )}
-                  </tr>
-                </tbody>
-              </table>
-            )}
-
-            {/* 4th & 5th Place Table (Table ensures perfect columns and zero text overlapping) */}
-            {remaining.length > 0 && (
-              <div style={remainingCard}>
-                <table width="100%" border={0} cellPadding={0} cellSpacing={0} style={{ borderCollapse: 'collapse' }}>
+              {/* 2nd & 3rd Place Cards (Using Table for 100% email client compatibility) */}
+              {(top2 || top3) && (
+                <table width="100%" border={0} cellPadding={0} cellSpacing={0} style={runnerUpTable}>
                   <tbody>
-                    {remaining.map((m, idx) => (
-                      <tr
-                        key={m.rank}
-                        style={{
-                          borderBottom: idx !== remaining.length - 1 ? '1px solid #e5e7eb' : 'none',
-                        }}
-                      >
-                        {/* Rank Circle */}
-                        <td width="40" valign="middle" align="center" style={{ padding: '12px 0 12px 4px' }}>
-                          <div style={rankCircle}>{m.rank}th</div>
-                        </td>
-
-                        {/* Name */}
-                        <td valign="middle" align="left" style={{ padding: '12px 12px' }}>
-                          <span style={remainingName}>{m.name}</span>
-                        </td>
-
-                        {/* Points Pill (Right-aligned, nowrap) */}
-                        <td width="110" valign="middle" align="right" style={{ padding: '12px 4px 12px 0', whiteSpace: 'nowrap' }}>
-                          <div style={remainingPointsPill}>
-                            <strong style={remainingPointsBold}>{m.points}</strong>
-                            <span style={remainingPointsLabel}>UR-coins</span>
+                    <tr>
+                      {top2 && (
+                        <td width={top3 ? '50%' : '100%'} valign="top" style={{ paddingRight: top3 ? '6px' : '0' }}>
+                          <div style={secondPlaceCard}>
+                            <div style={medalBadgeSilver}>🥈 2nd Place</div>
+                            <Text style={runnerUpName}>{top2.name}</Text>
+                            <div style={pointsPillSilver}>
+                              <strong style={runnerUpPoints}>{top2.points}</strong>
+                              <span style={runnerUpLabel}>coins</span>
+                            </div>
                           </div>
                         </td>
-                      </tr>
-                    ))}
+                      )}
+                      {top3 && (
+                        <td width={top2 ? '50%' : '100%'} valign="top" style={{ paddingLeft: top2 ? '6px' : '0' }}>
+                          <div style={thirdPlaceCard}>
+                            <div style={medalBadgeBronze}>🥉 3rd Place</div>
+                            <Text style={runnerUpName}>{top3.name}</Text>
+                            <div style={pointsPillBronze}>
+                              <strong style={runnerUpPoints}>{top3.points}</strong>
+                              <span style={runnerUpLabel}>coins</span>
+                            </div>
+                          </div>
+                        </td>
+                      )}
+                    </tr>
                   </tbody>
                 </table>
+              )}
+
+              {/* Anti-thread divider token */}
+              <div style={antiThreadToken}>
+                &#8203;[{uniqueToken}-p45]&#8203;
               </div>
-            )}
+
+              {/* 4th & 5th Place Table (Table ensures perfect columns and zero text overlapping) */}
+              {remaining.length > 0 && (
+                <div style={remainingCard}>
+                  <table width="100%" border={0} cellPadding={0} cellSpacing={0} style={{ borderCollapse: 'collapse' }}>
+                    <tbody>
+                      {remaining.map((m, idx) => (
+                        <tr
+                          key={m.rank}
+                          style={{
+                            borderBottom: idx !== remaining.length - 1 ? '1px solid #e5e7eb' : 'none',
+                          }}
+                        >
+                          {/* Rank Circle */}
+                          <td width="40" valign="middle" align="center" style={{ padding: '12px 0 12px 4px' }}>
+                            <div style={rankCircle}>{m.rank}th</div>
+                          </td>
+
+                          {/* Name */}
+                          <td valign="middle" align="left" style={{ padding: '12px 12px' }}>
+                            <span style={remainingName}>{m.name}</span>
+                          </td>
+
+                          {/* Points Pill (Right-aligned, nowrap) */}
+                          <td width="110" valign="middle" align="right" style={{ padding: '12px 4px 12px 0', whiteSpace: 'nowrap' }}>
+                            <div style={remainingPointsPill}>
+                              <strong style={remainingPointsBold}>{m.points}</strong>
+                              <span style={remainingPointsLabel}>UR-coins</span>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+            </div>
 
             <Hr style={divider} />
 
@@ -169,6 +196,11 @@ export default function LeaderboardEmail({
                 With all our love & prayers,<br />
                 <strong>The Upper Room Family</strong> ❤️
               </Text>
+            </div>
+
+            {/* Invisible Bottom Anti-Quote Signature prevents Gmail conversation truncation */}
+            <div style={antiThreadToken}>
+              &#8203;[UR-{uniqueToken}]&#8203;
             </div>
 
           </Section>
@@ -247,8 +279,8 @@ const introText = {
 
 const customNoteBox = {
   backgroundColor: '#fffbeb',
-  borderLeft: '4px solid #f59e0b',
-  borderRadius: '8px',
+  border: '1.5px solid #fde68a',
+  borderRadius: '12px',
   padding: '12px 16px',
   margin: '0 0 20px 0',
 }
@@ -259,6 +291,20 @@ const customNoteText = {
   color: '#92400e',
   margin: '0',
   lineHeight: '1.5',
+}
+
+const leaderboardContainer = {
+  margin: '0 0 20px 0',
+}
+
+const antiThreadToken = {
+  display: 'none',
+  maxHeight: 0,
+  overflow: 'hidden',
+  opacity: 0,
+  fontSize: '1px',
+  lineHeight: '1px',
+  color: 'transparent',
 }
 
 // 1st Place Card
@@ -405,7 +451,7 @@ const remainingCard = {
   borderRadius: '14px',
   border: '1px solid #e5e7eb',
   padding: '4px 14px',
-  margin: '0 0 20px 0',
+  margin: '0 0 14px 0',
 }
 
 const rankCircle = {
@@ -460,8 +506,8 @@ const divider = {
 
 const scriptureCard = {
   backgroundColor: '#f3f6f4',
-  borderLeft: '4px solid #345239',
-  borderRadius: '8px',
+  border: '1px solid #d1fae5',
+  borderRadius: '12px',
   padding: '14px 18px',
   margin: '0 0 16px 0',
   textAlign: 'center' as const,
