@@ -10,6 +10,7 @@ import PointsEmail from '@/emails/PointsEmail'
 import VerseEmail from '@/emails/VerseEmail'
 import BirthdayEmail from '@/emails/BirthdayEmail'
 import ScheduleEmail from '@/emails/ScheduleEmail'
+import LeaderboardEmail from '@/emails/LeaderboardEmail'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import versesData from '@/data/verses.json'
@@ -463,5 +464,107 @@ export async function distributeSchedule(formData: FormData) {
     await delay(1500);
   }
   
+  revalidatePath('/admin');
+}
+
+// DISTRIBUTE TOP 5 LEADERBOARD
+export async function distributeLeaderboard(formData: FormData) {
+  const adminClient = createAdminClient();
+  const targetUserId = formData.get('userId') as string;
+  const customNote = (formData.get('customNote') as string)?.trim() || undefined;
+
+  // 1. Calculate live top 5 from DB
+  const { data: allUsers } = await adminClient
+    .from('profiles')
+    .select('id, email, full_name')
+    .eq('role', 'user');
+
+  const { data: allTransactions } = await adminClient
+    .from('transactions')
+    .select('user_id, points_added');
+
+  if (!allUsers || allUsers.length === 0) return;
+
+  const pointsMap = new Map<string, number>();
+  allUsers.forEach(u => pointsMap.set(u.id, 0));
+  allTransactions?.forEach(tx => {
+    if (pointsMap.has(tx.user_id)) {
+      pointsMap.set(tx.user_id, pointsMap.get(tx.user_id)! + tx.points_added);
+    }
+  });
+
+  const sortedLeaders = allUsers
+    .map(u => ({
+      id: u.id,
+      name: u.full_name || u.email.split('@')[0],
+      points: pointsMap.get(u.id) || 0,
+    }))
+    .sort((a, b) => b.points - a.points);
+
+  const top5 = sortedLeaders.slice(0, 5).map((u, idx) => ({
+    rank: idx + 1,
+    name: u.name,
+    points: u.points,
+  }));
+
+  // 2. Resolve target users
+  let targetUsers: any[] = [];
+
+  if (targetUserId && targetUserId !== 'all') {
+    targetUsers = allUsers.filter(u => u.id === targetUserId);
+  } else {
+    // BATCHING MODE: 20 users who haven't received the leaderboard email in the last 6 days
+    const sixDaysAgo = new Date();
+    sixDaysAgo.setDate(sixDaysAgo.getDate() - 6);
+    sixDaysAgo.setUTCHours(0, 0, 0, 0);
+
+    let recentUserIds = new Set<string>();
+    try {
+      const { data: recentLogs } = await adminClient
+        .from('leaderboard_logs')
+        .select('user_id')
+        .gte('created_at', sixDaysAgo.toISOString());
+      recentUserIds = new Set(recentLogs?.map(v => v.user_id) || []);
+    } catch (e) {
+      console.warn('leaderboard_logs query failed (table may not exist yet):', e);
+    }
+
+    targetUsers = allUsers.filter(u => !recentUserIds.has(u.id)).slice(0, 20);
+  }
+
+  if (targetUsers.length === 0) return;
+
+  const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+
+  // 3. Send emails
+  for (const user of targetUsers) {
+    try {
+      // Log distribution
+      await adminClient.from('leaderboard_logs').insert({ user_id: user.id });
+    } catch (e) {
+      console.warn('Failed to insert into leaderboard_logs:', e);
+    }
+
+    try {
+      const htmlStr = await render(LeaderboardEmail({
+        userName: user.full_name || user.email.split('@')[0] || 'there',
+        leaders: top5,
+        customNote,
+        walletUrl: `${siteUrl}/wallet`,
+      }) as React.ReactElement);
+
+      await transporter.sendMail({
+        from: `"The Upper Room" <${process.env.GMAIL_USER}>`,
+        to: user.email,
+        subject: 'Celebrating Our Top 5! 🏆 | The Upper Room',
+        html: htmlStr,
+      });
+    } catch (e) {
+      console.error('Leaderboard email failed to send to ' + user.email + ':', e);
+    }
+
+    await delay(1500);
+  }
+
   revalidatePath('/admin');
 }

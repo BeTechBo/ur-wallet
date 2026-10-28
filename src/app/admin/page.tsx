@@ -1,5 +1,5 @@
-import { Users, Coins, Mail, Plus, Trophy, Cake, Calendar, CheckCircle, Clock } from 'lucide-react';
-import { registerMember, distributeVerses, sendBirthdayAction, distributeSchedule } from '@/app/actions';
+import { Users, Coins, Mail, Plus, Trophy, Cake, Calendar, CheckCircle, Clock, Sparkles, Award } from 'lucide-react';
+import { registerMember, distributeVerses, sendBirthdayAction, distributeSchedule, distributeLeaderboard } from '@/app/actions';
 import { createAdminClient } from '@/utils/supabase/admin';
 import AwardForm from './AwardForm';
 import AdminSchedule from './AdminSchedule';
@@ -30,6 +30,19 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
   const usersWithSchedule = new Set(scheduleLogs?.map(v => v.user_id) || []);
   const receivedScheduleUsers = (users || []).filter(u => usersWithSchedule.has(u.id));
   const pendingScheduleUsers = (users || []).filter(u => !usersWithSchedule.has(u.id));
+
+  // Top 5 Leaderboard tracking
+  let leaderboardLogs: any[] = [];
+  try {
+    const { data: lbData } = await adminClient
+      .from('leaderboard_logs')
+      .select('user_id')
+      .gte('created_at', sixDaysAgo.toISOString());
+    leaderboardLogs = lbData || [];
+  } catch (e) {}
+  const usersWithLeaderboard = new Set(leaderboardLogs.map(v => v.user_id));
+  const receivedLeaderboardUsers = (users || []).filter(u => usersWithLeaderboard.has(u.id));
+  const pendingLeaderboardUsers = (users || []).filter(u => !usersWithLeaderboard.has(u.id));
 
   const startOfToday = new Date();
   startOfToday.setUTCHours(0, 0, 0, 0);
@@ -324,6 +337,123 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
                 </div>
               ) : (
                 pendingScheduleUsers.map((user, i) => (
+                  <div key={user.id} className="flex justify-between items-center p-3 rounded-xl bg-gray-50/50 border border-gray-100 hover:bg-gray-50 transition-colors">
+                    <span className="font-medium text-sm text-foreground truncate mr-4">
+                      {user.full_name || user.email}
+                    </span>
+                    <div className="w-2 h-2 rounded-full bg-amber-400 shrink-0"></div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Top 5 Leaderboard Distribution Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+        
+        {/* Distribute Top 5 Email */}
+        <div className="bg-white rounded-2xl p-8 border border-secondary/30 shadow-sm flex flex-col">
+          <div className="flex items-center gap-3 mb-4">
+            <Trophy className="w-5 h-5 text-amber-500" />
+            <h2 className="font-bold text-lg text-foreground">Distribute Top 5 Leaderboard</h2>
+          </div>
+          <p className="text-xs text-foreground/60 mb-6 leading-relaxed">
+            Send a celebratory email showcasing our current top 5 champions. You can batch send 20 at a time to members who haven't received it in the last 6 days.
+          </p>
+
+          {/* Live Top 5 Preview Card */}
+          <div className="mb-6 bg-amber-50/40 p-4 rounded-xl border border-amber-200/60 space-y-2">
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-[11px] font-bold text-amber-800 uppercase tracking-widest flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                Current Top 5 Preview
+              </label>
+              <span className="text-[10px] font-bold text-amber-700/60 uppercase">Live Points</span>
+            </div>
+
+            {leaderboard.slice(0, 5).map((entry, idx) => (
+              <div key={entry.userId} className="flex items-center justify-between py-1.5 px-2.5 rounded-lg bg-white/90 border border-amber-100 text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-sm">
+                    {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`}
+                  </span>
+                  <span className="font-bold text-foreground truncate max-w-[170px]">{entry.name}</span>
+                </div>
+                <span className="font-black text-amber-700 bg-amber-100/70 px-2 py-0.5 rounded-md">
+                  {entry.totalCoins} coins
+                </span>
+              </div>
+            ))}
+            {leaderboard.length === 0 && (
+              <p className="text-xs text-foreground/50 italic py-2">No members have points yet.</p>
+            )}
+          </div>
+
+          <form action={distributeLeaderboard} className="flex-1 flex flex-col justify-end space-y-4">
+            <div>
+              <label className="block text-[11px] font-bold text-foreground/50 uppercase tracking-widest mb-2">
+                Personal Celebration Note (Optional)
+              </label>
+              <input 
+                name="customNote" 
+                type="text" 
+                placeholder="e.g. Huge congratulations to our leaders! Keep up the wonderful spirit!" 
+                className="w-full px-4 py-2 border border-secondary/30 rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary text-sm bg-gray-50 outline-none transition-all placeholder:text-gray-400"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-foreground/50 uppercase tracking-widest mb-2">Select Target</label>
+              <select 
+                name="userId" 
+                className="w-full px-4 py-2 border border-secondary/30 rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary text-sm bg-gray-50 outline-none transition-all"
+              >
+                <option value="all">Unsent Members (Batch 20)</option>
+                {users?.map(u => (
+                  <option key={u.id} value={u.id}>{u.full_name || u.email}</option>
+                ))}
+              </select>
+            </div>
+
+            <SubmitButton loadingText="Sending Top 5 Emails..." className="w-full bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-xl text-sm font-bold shadow-sm transition-colors cursor-pointer flex items-center justify-center gap-2">
+              <Trophy className="w-4 h-4" />
+              Send Top 5 Emails
+            </SubmitButton>
+          </form>
+        </div>
+
+        {/* Top 5 Distribution Status */}
+        <div className="bg-white rounded-2xl p-8 border border-secondary/30 shadow-sm flex flex-col h-[560px]">
+          <div className="flex items-center gap-3 mb-6">
+            <Award className="w-5 h-5 text-amber-500" />
+            <h2 className="font-bold text-lg text-foreground">Top 5 Distribution Status</h2>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="bg-green-50 rounded-xl p-4 border border-green-100 flex flex-col items-center justify-center text-center">
+              <span className="text-3xl font-black text-green-600 mb-1">{receivedLeaderboardUsers.length}</span>
+              <span className="text-xs font-bold text-green-600/70 uppercase tracking-wider">Received</span>
+            </div>
+            <div className="bg-amber-50 rounded-xl p-4 border border-amber-100 flex flex-col items-center justify-center text-center">
+              <span className="text-3xl font-black text-amber-600 mb-1">{pendingLeaderboardUsers.length}</span>
+              <span className="text-xs font-bold text-amber-600/70 uppercase tracking-wider">Pending</span>
+            </div>
+          </div>
+          
+          <div className="flex-1 overflow-hidden flex flex-col">
+            <label className="block text-[11px] font-bold text-foreground/50 uppercase tracking-widest mb-3">
+              Pending Members ({pendingLeaderboardUsers.length})
+            </label>
+            <div className="overflow-y-auto pr-2 space-y-2 flex-1">
+              {pendingLeaderboardUsers.length === 0 ? (
+                <div className="h-full flex items-center justify-center text-foreground/50 text-sm italic">
+                  All members have received the Top 5 celebration email!
+                </div>
+              ) : (
+                pendingLeaderboardUsers.map((user) => (
                   <div key={user.id} className="flex justify-between items-center p-3 rounded-xl bg-gray-50/50 border border-gray-100 hover:bg-gray-50 transition-colors">
                     <span className="font-medium text-sm text-foreground truncate mr-4">
                       {user.full_name || user.email}
