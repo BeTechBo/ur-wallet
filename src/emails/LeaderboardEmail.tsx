@@ -62,53 +62,82 @@ export default function LeaderboardEmail({
             {/* PODIUM: 1st Place Spotlight */}
             {top1 && (
               <div style={firstPlaceCard}>
-                <div style={medalBadgeGold}>👑 1st Place</div>
+                <div style={medalBadgeGold}>👑 1ST PLACE</div>
                 <Text style={firstPlaceName}>{top1.name}</Text>
                 <div style={firstPlacePointsPill}>
                   <span style={pointsValueGold}>{top1.points}</span>
-                  <span style={pointsLabelGold}>UR-coins</span>
+                  <span style={pointsLabelGold}>UR-COINS</span>
                 </div>
               </div>
             )}
 
-            {/* 2nd & 3rd Place Cards */}
+            {/* 2nd & 3rd Place Cards (Using Table for 100% email client compatibility) */}
             {(top2 || top3) && (
-              <div style={runnerUpGrid}>
-                {top2 && (
-                  <div style={secondPlaceCard}>
-                    <div style={medalBadgeSilver}>🥈 2nd Place</div>
-                    <Text style={runnerUpName}>{top2.name}</Text>
-                    <div style={pointsPillSilver}>
-                      <span style={runnerUpPoints}>{top2.points}</span>
-                      <span style={runnerUpLabel}>coins</span>
-                    </div>
-                  </div>
-                )}
-                {top3 && (
-                  <div style={thirdPlaceCard}>
-                    <div style={medalBadgeBronze}>🥉 3rd Place</div>
-                    <Text style={runnerUpName}>{top3.name}</Text>
-                    <div style={pointsPillBronze}>
-                      <span style={runnerUpPoints}>{top3.points}</span>
-                      <span style={runnerUpLabel}>coins</span>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <table width="100%" border={0} cellPadding={0} cellSpacing={0} style={runnerUpTable}>
+                <tbody>
+                  <tr>
+                    {top2 && (
+                      <td width={top3 ? '50%' : '100%'} valign="top" style={{ paddingRight: top3 ? '6px' : '0' }}>
+                        <div style={secondPlaceCard}>
+                          <div style={medalBadgeSilver}>🥈 2nd Place</div>
+                          <Text style={runnerUpName}>{top2.name}</Text>
+                          <div style={pointsPillSilver}>
+                            <strong style={runnerUpPoints}>{top2.points}</strong>
+                            <span style={runnerUpLabel}>coins</span>
+                          </div>
+                        </div>
+                      </td>
+                    )}
+                    {top3 && (
+                      <td width={top2 ? '50%' : '100%'} valign="top" style={{ paddingLeft: top2 ? '6px' : '0' }}>
+                        <div style={thirdPlaceCard}>
+                          <div style={medalBadgeBronze}>🥉 3rd Place</div>
+                          <Text style={runnerUpName}>{top3.name}</Text>
+                          <div style={pointsPillBronze}>
+                            <strong style={runnerUpPoints}>{top3.points}</strong>
+                            <span style={runnerUpLabel}>coins</span>
+                          </div>
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                </tbody>
+              </table>
             )}
 
-            {/* 4th & 5th Place List */}
+            {/* 4th & 5th Place Table (Table ensures perfect columns and zero text overlapping) */}
             {remaining.length > 0 && (
-              <div style={remainingList}>
-                {remaining.map((m) => (
-                  <div key={m.rank} style={remainingRow}>
-                    <div style={rankCircle}>{m.rank}th</div>
-                    <Text style={remainingName}>{m.name}</Text>
-                    <div style={remainingPointsPill}>
-                      <strong>{m.points}</strong> UR-coins
-                    </div>
-                  </div>
-                ))}
+              <div style={remainingCard}>
+                <table width="100%" border={0} cellPadding={0} cellSpacing={0} style={{ borderCollapse: 'collapse' }}>
+                  <tbody>
+                    {remaining.map((m, idx) => (
+                      <tr
+                        key={m.rank}
+                        style={{
+                          borderBottom: idx !== remaining.length - 1 ? '1px solid #e5e7eb' : 'none',
+                        }}
+                      >
+                        {/* Rank Circle */}
+                        <td width="40" valign="middle" align="center" style={{ padding: '12px 0 12px 4px' }}>
+                          <div style={rankCircle}>{m.rank}th</div>
+                        </td>
+
+                        {/* Name */}
+                        <td valign="middle" align="left" style={{ padding: '12px 12px' }}>
+                          <span style={remainingName}>{m.name}</span>
+                        </td>
+
+                        {/* Points Pill (Right-aligned, nowrap) */}
+                        <td width="110" valign="middle" align="right" style={{ padding: '12px 4px 12px 0', whiteSpace: 'nowrap' }}>
+                          <div style={remainingPointsPill}>
+                            <strong style={remainingPointsBold}>{m.points}</strong>
+                            <span style={remainingPointsLabel}>UR-coins</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
 
@@ -153,7 +182,7 @@ export default function LeaderboardEmail({
 const main = {
   backgroundColor: '#f6f3ee',
   fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif',
-  padding: '36px 0',
+  padding: '32px 0',
   margin: '0',
 }
 
@@ -169,7 +198,7 @@ const container = {
 
 const banner = {
   background: 'linear-gradient(135deg, #C25E2E 0%, #D97746 55%, #345239 100%)',
-  padding: '36px 24px 32px 24px',
+  padding: '34px 20px 30px 20px',
   textAlign: 'center' as const,
 }
 
@@ -184,7 +213,7 @@ const bannerPretitle = {
 
 const bannerTitle = {
   color: '#ffffff',
-  fontSize: '30px',
+  fontSize: '28px',
   fontWeight: '800',
   letterSpacing: '-0.5px',
   margin: '0 0 6px 0',
@@ -193,27 +222,27 @@ const bannerTitle = {
 
 const bannerSubtitle = {
   color: 'rgba(255, 255, 255, 0.9)',
-  fontSize: '14px',
+  fontSize: '13px',
   fontWeight: '500',
   margin: '0',
 }
 
 const content = {
-  padding: '32px 28px',
+  padding: '28px 24px',
 }
 
 const greeting = {
-  fontSize: '19px',
+  fontSize: '18px',
   fontWeight: '700',
   color: '#1f2937',
   margin: '0 0 8px 0',
 }
 
 const introText = {
-  fontSize: '15px',
+  fontSize: '14px',
   lineHeight: '1.6',
   color: '#4b5563',
-  margin: '0 0 24px 0',
+  margin: '0 0 20px 0',
 }
 
 const customNoteBox = {
@@ -221,7 +250,7 @@ const customNoteBox = {
   borderLeft: '4px solid #f59e0b',
   borderRadius: '8px',
   padding: '12px 16px',
-  margin: '0 0 24px 0',
+  margin: '0 0 20px 0',
 }
 
 const customNoteText = {
@@ -237,10 +266,10 @@ const firstPlaceCard = {
   backgroundColor: '#fffdf5',
   border: '2px solid #f59e0b',
   borderRadius: '16px',
-  padding: '24px 20px',
+  padding: '22px 18px',
   textAlign: 'center' as const,
-  margin: '0 0 16px 0',
-  boxShadow: '0 4px 14px rgba(245, 158, 11, 0.12)',
+  margin: '0 0 14px 0',
+  boxShadow: '0 4px 14px rgba(245, 158, 11, 0.10)',
 }
 
 const medalBadgeGold = {
@@ -266,11 +295,10 @@ const firstPlaceName = {
 }
 
 const firstPlacePointsPill = {
-  display: 'inline-flex',
-  alignItems: 'baseline',
+  display: 'inline-block',
   backgroundColor: '#f59e0b',
   borderRadius: '12px',
-  padding: '6px 16px',
+  padding: '6px 18px',
 }
 
 const pointsValueGold = {
@@ -281,21 +309,20 @@ const pointsValueGold = {
 }
 
 const pointsLabelGold = {
-  color: 'rgba(255, 255, 255, 0.9)',
-  fontSize: '13px',
-  fontWeight: '600',
+  color: 'rgba(255, 255, 255, 0.95)',
+  fontSize: '12px',
+  fontWeight: '700',
   textTransform: 'uppercase' as const,
+  letterSpacing: '0.5px',
 }
 
-// 2nd & 3rd Place Grid
-const runnerUpGrid = {
-  display: 'flex',
-  gap: '12px',
-  margin: '0 0 16px 0',
+// 2nd & 3rd Place Table
+const runnerUpTable = {
+  margin: '0 0 14px 0',
+  borderCollapse: 'separate' as const,
 }
 
 const secondPlaceCard = {
-  flex: '1',
   backgroundColor: '#f8fafc',
   border: '1.5px solid #cbd5e1',
   borderRadius: '14px',
@@ -316,7 +343,6 @@ const medalBadgeSilver = {
 }
 
 const thirdPlaceCard = {
-  flex: '1',
   backgroundColor: '#fff7ed',
   border: '1.5px solid #fdba74',
   borderRadius: '14px',
@@ -373,48 +399,55 @@ const runnerUpLabel = {
   fontSize: '11px',
 }
 
-// 4th & 5th Place List
-const remainingList = {
+// 4th & 5th Place Card & Table Elements
+const remainingCard = {
   backgroundColor: '#f9fafb',
-  borderRadius: '12px',
+  borderRadius: '14px',
   border: '1px solid #e5e7eb',
   padding: '4px 14px',
-  margin: '0 0 24px 0',
-}
-
-const remainingRow = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  padding: '10px 0',
-  borderBottom: '1px solid #f3f4f6',
+  margin: '0 0 20px 0',
 }
 
 const rankCircle = {
   width: '28px',
   height: '28px',
+  lineHeight: '28px',
   borderRadius: '50%',
   backgroundColor: '#e5e7eb',
-  color: '#4b5563',
+  color: '#374151',
   fontSize: '11px',
   fontWeight: '800',
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  marginRight: '12px',
+  textAlign: 'center' as const,
+  display: 'block',
 }
 
 const remainingName = {
-  flex: '1',
   fontSize: '14px',
-  fontWeight: '600',
+  fontWeight: '700',
   color: '#1f2937',
-  margin: '0',
+  display: 'block',
 }
 
 const remainingPointsPill = {
+  display: 'inline-block',
+  backgroundColor: '#f3f4f6',
+  border: '1px solid #e5e7eb',
+  borderRadius: '8px',
+  padding: '4px 10px',
+  textAlign: 'right' as const,
+}
+
+const remainingPointsBold = {
   fontSize: '13px',
+  fontWeight: '800',
+  color: '#1f2937',
+  marginRight: '3px',
+}
+
+const remainingPointsLabel = {
+  fontSize: '11px',
   color: '#6b7280',
+  fontWeight: '500',
 }
 
 const divider = {
@@ -422,25 +455,25 @@ const divider = {
   borderBottom: 'none',
   borderLeft: 'none',
   borderRight: 'none',
-  margin: '28px 0 24px 0',
+  margin: '24px 0 20px 0',
 }
 
 const scriptureCard = {
   backgroundColor: '#f3f6f4',
   borderLeft: '4px solid #345239',
   borderRadius: '8px',
-  padding: '16px 20px',
+  padding: '14px 18px',
   margin: '0 0 16px 0',
   textAlign: 'center' as const,
 }
 
 const scriptureIcon = {
-  fontSize: '22px',
+  fontSize: '20px',
   margin: '0 0 6px 0',
 }
 
 const scriptureText = {
-  fontSize: '14px',
+  fontSize: '13px',
   fontStyle: 'italic',
   lineHeight: '1.5',
   color: '#26402c',
@@ -448,7 +481,7 @@ const scriptureText = {
 }
 
 const scriptureRef = {
-  fontSize: '12px',
+  fontSize: '11px',
   fontWeight: '700',
   color: '#345239',
   margin: '0',
@@ -457,16 +490,16 @@ const scriptureRef = {
 }
 
 const encouragementBody = {
-  fontSize: '14px',
+  fontSize: '13px',
   lineHeight: '1.6',
   color: '#4b5563',
   textAlign: 'center' as const,
-  margin: '0 0 24px 0',
+  margin: '0 0 22px 0',
 }
 
 const buttonContainer = {
   textAlign: 'center' as const,
-  margin: '0 0 28px 0',
+  margin: '0 0 24px 0',
 }
 
 const button = {
@@ -475,7 +508,7 @@ const button = {
   fontSize: '14px',
   fontWeight: '700',
   borderRadius: '12px',
-  padding: '13px 28px',
+  padding: '12px 26px',
   textDecoration: 'none',
   display: 'inline-block',
   boxShadow: '0 4px 12px rgba(217, 119, 70, 0.25)',
@@ -483,12 +516,12 @@ const button = {
 
 const footerContainer = {
   borderTop: '1px solid #f3f4f6',
-  paddingTop: '20px',
+  paddingTop: '18px',
   textAlign: 'center' as const,
 }
 
 const footerText = {
-  fontSize: '14px',
+  fontSize: '13px',
   lineHeight: '1.6',
   color: '#6b7280',
   margin: '0',
