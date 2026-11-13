@@ -1,6 +1,6 @@
-import { BookOpen, CalendarDays, Users, CheckCircle2 } from 'lucide-react'
+import { BookOpen, CalendarDays, Users, CheckCircle2, RotateCcw } from 'lucide-react'
 import { BIBLE_CHARACTERS } from '@/data/bible-characters'
-import { setDailyChallenge } from '@/app/actions'
+import { setDailyChallenge, resetDailyChallenge, resetTestCharacters } from '@/app/actions'
 import { SubmitButton } from '@/components/SubmitButton'
 
 type DailyChallengeAdminProps = {
@@ -29,25 +29,50 @@ export default function DailyChallengeAdmin({
 
   const usedSet = new Set(usedCharacterIds)
   const availableCharacters = BIBLE_CHARACTERS.filter((c) => !usedSet.has(c.id))
+  const hasTestCharactersUsed = usedSet.has('martha') || usedSet.has('mary-mother-of-jesus')
 
   return (
     <div className="bg-white rounded-2xl p-8 border border-secondary/30 shadow-sm space-y-8">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <BookOpen className="w-5 h-5 text-secondary" />
-        <div>
-          <h2 className="font-bold text-lg text-foreground">Daily Quest — Who Am I?</h2>
-          <p className="text-xs text-foreground/50 mt-0.5">
-            {availableCharacters.length} of {BIBLE_CHARACTERS.length} characters remaining
-          </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <BookOpen className="w-5 h-5 text-secondary" />
+          <div>
+            <h2 className="font-bold text-lg text-foreground">Daily Quest: Who Am I</h2>
+            <p className="text-xs text-foreground/50 mt-0.5">
+              {availableCharacters.length} of {BIBLE_CHARACTERS.length} characters remaining
+            </p>
+          </div>
         </div>
+
+        {hasTestCharactersUsed && (
+          <form action={resetTestCharacters}>
+            <SubmitButton className="inline-flex items-center gap-1.5 rounded-xl border border-secondary/40 bg-secondary/10 hover:bg-secondary/20 text-secondary text-xs font-bold px-3.5 py-2 transition">
+              <RotateCcw className="w-3.5 h-3.5" />
+              Reset Martha & Virgin Mary
+            </SubmitButton>
+          </form>
+        )}
       </div>
 
       {/* Today's active challenge */}
-      <div className="rounded-xl border border-primary/20 bg-[#FCF8F2] p-5 space-y-2">
-        <div className="flex items-center gap-2 text-primary font-semibold text-sm uppercase tracking-wide">
-          <CalendarDays className="w-4 h-4" />
-          Active Challenge
+      <div className="rounded-xl border border-primary/20 bg-[#FCF8F2] p-5 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-primary font-semibold text-sm uppercase tracking-wide">
+            <CalendarDays className="w-4 h-4" />
+            Active Challenge
+          </div>
+          {todayChallenge && (
+            <form action={resetDailyChallenge}>
+              <input type="hidden" name="challengeId" value={todayChallenge.id} />
+              <button
+                type="submit"
+                className="text-xs text-red-600 hover:text-red-700 font-semibold underline transition cursor-pointer"
+              >
+                Clear Active Challenge
+              </button>
+            </form>
+          )}
         </div>
         {todayCharacter && todayChallenge ? (
           <div className="space-y-1">
@@ -74,7 +99,7 @@ export default function DailyChallengeAdmin({
           </label>
           {availableCharacters.length === 0 ? (
             <div className="rounded-xl border border-secondary/20 bg-[#FCF8F2] px-4 py-4 text-sm text-foreground/50 italic text-center">
-              🎉 All 30 characters have been used! You can reset if needed.
+              All 30 characters have been used! You can reset any character from recent history below.
             </div>
           ) : (
             <select
@@ -84,10 +109,10 @@ export default function DailyChallengeAdmin({
               defaultValue=""
               className="w-full rounded-xl border border-secondary/30 bg-[#FCF8F2] px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/50 transition"
             >
-              <option value="" disabled>— Choose a character (unused only) —</option>
+              <option value="" disabled>Choose a character (unused only)</option>
               {availableCharacters.map((char) => (
                 <option key={char.id} value={char.id}>
-                  {char.name_en} ({char.name_ar}) — {char.testament === 'OT' ? 'Old Testament' : 'New Testament'}
+                  {char.name_en} ({char.name_ar}) [{char.testament === 'OT' ? 'Old Testament' : 'New Testament'}]
                 </option>
               ))}
             </select>
@@ -122,9 +147,20 @@ export default function DailyChallengeAdmin({
                     </span>
                     <span className="ml-2 text-xs text-foreground/40">{rc.active_date}</span>
                   </div>
-                  <div className="flex items-center gap-1 text-xs text-secondary font-semibold">
-                    <Users className="w-3 h-3" />
-                    {rc.solver_count}
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1 text-xs text-secondary font-semibold">
+                      <Users className="w-3 h-3" />
+                      {rc.solver_count}
+                    </div>
+                    <form action={resetDailyChallenge}>
+                      <input type="hidden" name="challengeId" value={rc.id} />
+                      <button
+                        type="submit"
+                        className="text-xs text-red-500 hover:text-red-700 font-semibold underline transition cursor-pointer"
+                      >
+                        Reset
+                      </button>
+                    </form>
                   </div>
                 </li>
               )

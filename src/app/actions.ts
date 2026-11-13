@@ -582,10 +582,12 @@ export async function submitChallengeAnswer({
   challengeId,
   userId,
   guess,
+  cluesRevealed = 1,
 }: {
   challengeId: string
   userId: string
   guess: string
+  cluesRevealed?: number
 }): Promise<{ success: boolean; correct: boolean; coinsAwarded?: number; rank?: number; error?: string }> {
   const adminClient = createAdminClient()
 
@@ -604,7 +606,7 @@ export async function submitChallengeAnswer({
     .select('id')
     .eq('challenge_id', challengeId)
     .eq('user_id', userId)
-    .single()
+    .maybeSingle()
 
   if (existing) return { success: false, correct: false, error: 'Already submitted' }
 
@@ -629,7 +631,13 @@ export async function submitChallengeAnswer({
     .eq('challenge_id', challengeId)
 
   const rank = (count || 0) + 1
-  const coinsAwarded = rank === 1 ? 6 : rank === 2 ? 5 : rank === 3 ? 4 : 2
+
+  // Coins awarded based on clue level solved from:
+  // 1st clue: 5 coins
+  // 2nd clue: 4 coins
+  // 3rd clue: 3 coins
+  const cluesCount = Math.max(1, Math.min(3, cluesRevealed))
+  const coinsAwarded = cluesCount === 1 ? 5 : cluesCount === 2 ? 4 : 3
 
   // Insert submission
   await adminClient.from('challenge_submissions').insert({
@@ -648,6 +656,34 @@ export async function submitChallengeAnswer({
   revalidatePath('/wallet')
 
   return { success: true, correct: true, coinsAwarded, rank }
+}
+
+// ADMIN: RESET SPECIFIC CHALLENGE BY ID OR CHARACTER ID
+export async function resetDailyChallenge(formData: FormData) {
+  const challengeId = formData.get('challengeId') as string
+  const characterId = formData.get('characterId') as string
+  const adminClient = createAdminClient()
+
+  if (challengeId) {
+    await adminClient.from('daily_challenges').delete().eq('id', challengeId)
+  } else if (characterId) {
+    await adminClient.from('daily_challenges').delete().eq('character_id', characterId)
+  }
+
+  revalidatePath('/admin')
+  revalidatePath('/wallet')
+}
+
+// ADMIN: RESET TEST CHARACTERS (MARTHA AND VIRGIN MARY)
+export async function resetTestCharacters() {
+  const adminClient = createAdminClient()
+  await adminClient
+    .from('daily_challenges')
+    .delete()
+    .in('character_id', ['martha', 'mary-mother-of-jesus'])
+
+  revalidatePath('/admin')
+  revalidatePath('/wallet')
 }
 
 // ADMIN: SET TODAY'S CHALLENGE

@@ -176,7 +176,7 @@ export default function LeaderboardEmail({
               <Text style={scriptureText}>
                 "Therefore encourage one another and build each other up, just as in fact you are doing."
               </Text>
-              <Text style={scriptureRef}>— 1 Thessalonians 5:11</Text>
+              <Text style={scriptureRef}>1 Thessalonians 5:11</Text>
             </div>
 
             <Text style={encouragementBody}>

@@ -96,7 +96,7 @@ export default function MemoriesView({ albums }: MemoriesViewProps) {
       <div className="flex flex-col items-center justify-center py-24 text-foreground/40">
         <Images className="w-16 h-16 mb-4 opacity-30" />
         <p className="text-lg font-semibold">No memories yet</p>
-        <p className="text-sm mt-1">Check back soon — photos will appear here after our gatherings!</p>
+        <p className="text-sm mt-1">Check back soon. Photos will appear here after our gatherings!</p>
       </div>
     )
   }

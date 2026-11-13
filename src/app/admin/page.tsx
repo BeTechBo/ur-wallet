@@ -585,7 +585,7 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
                         ))}
                       </div>
                     ) : (
-                      <span className="opacity-50">—</span>
+                      <span className="opacity-50">None</span>
                     )}
                   </td>
                 </tr>

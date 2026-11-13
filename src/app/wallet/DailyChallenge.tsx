@@ -80,8 +80,8 @@ function SolvedCard({
       {/* Success bar */}
       <div className="bg-[#416047] px-5 py-3 flex items-center justify-between">
         <span className="text-[11px] font-black tracking-[0.2em] uppercase text-white/90">Solved</span>
-        <span className="text-[11px] font-bold text-white/70">
-          {ordinal(rank)} to solve · +{submission.coins_awarded} coins
+        <span className="text-[11px] font-bold text-white/80">
+          +{submission.coins_awarded} coins awarded
         </span>
       </div>
 
@@ -92,27 +92,27 @@ function SolvedCard({
         </p>
         <div className="flex items-baseline gap-3 flex-wrap">
           <span className="text-2xl font-black text-[#2E4034] tracking-tight">{character.name_en}</span>
-          <span className="text-lg text-[#2E4034]/40 font-medium" dir="rtl">{character.name_ar}</span>
+          <span className="text-lg text-[#2E4034]/60 font-bold" dir="rtl">{character.name_ar}</span>
         </div>
       </div>
 
       {/* Biography */}
       <div className="px-5 py-5 border-b border-[#2E4034]/8">
         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#2E4034]/40 mb-3">About</p>
-        <p className="text-sm text-[#2E4034]/75 leading-relaxed">{character.biography}</p>
+        <p className="text-sm font-medium text-[#2E4034]/85 leading-relaxed">{character.biography}</p>
       </div>
 
       {/* Key verse */}
       <div className="px-5 py-5">
         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#2E4034]/40 mb-3">Key Verse</p>
-        <p className="text-sm text-[#416047] font-serif italic leading-relaxed">
+        <p className="text-sm text-[#416047] font-bold italic leading-relaxed">
           &ldquo;{character.key_verse}&rdquo;
         </p>
-        <p className="text-xs text-[#D97746] font-semibold mt-2 tracking-wide">{character.key_verse_ref}</p>
+        <p className="text-xs text-[#D97746] font-bold mt-2 tracking-wide">{character.key_verse_ref}</p>
       </div>
 
       <div className="bg-[#FCF8F2] border-t border-[#2E4034]/8 px-5 py-3">
-        <p className="text-xs text-[#2E4034]/40">Come back tomorrow at 10:00 PM for the next mystery.</p>
+        <p className="text-xs font-medium text-[#2E4034]/50">Come back tomorrow at 10:00 PM for the next mystery.</p>
       </div>
     </div>
   )
@@ -177,11 +177,16 @@ function ActiveChallenge({
   function submit() {
     if (!guess.trim() || pending || attemptsLeft === 0 || solved) return
     startTransition(async () => {
-      const res = await submitChallengeAnswer({ challengeId: challenge.id, userId, guess: guess.trim() })
+      const res = await submitChallengeAnswer({
+        challengeId: challenge.id,
+        userId,
+        guess: guess.trim(),
+        cluesRevealed: revealed,
+      })
       if (!res.success) { triggerShake(res.error || 'Something went wrong.'); return }
       if (res.correct) {
         playCorrectSound()
-        setSolved({ coinsAwarded: res.coinsAwarded ?? 2, rank: res.rank ?? 1 })
+        setSolved({ coinsAwarded: res.coinsAwarded ?? (revealed === 1 ? 5 : revealed === 2 ? 4 : 3), rank: res.rank ?? 1 })
         setShowBio(true)
       } else {
         const rem = attemptsLeft - 1
@@ -212,7 +217,7 @@ function ActiveChallenge({
       <div className="bg-[#2E4034] px-5 py-3 flex items-center justify-between">
         <span className="text-[11px] font-black tracking-[0.2em] uppercase text-white/90">Daily Quest</span>
         {submissionsCount > 0 && (
-          <span className="text-[11px] text-white/50 font-medium">
+          <span className="text-[11px] text-white/70 font-bold">
             {submissionsCount} solved today
           </span>
         )}
@@ -220,8 +225,8 @@ function ActiveChallenge({
 
       {/* Title */}
       <div className="px-5 pt-6 pb-4 border-b border-[#2E4034]/8">
-        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#D97746] mb-1">Who Am I?</p>
-        <p className="text-[10px] font-bold tracking-[0.15em] text-[#2E4034]/30" dir="rtl">من أنا؟</p>
+        <p className="text-xs font-black uppercase tracking-[0.2em] text-[#D97746] mb-1">Who Am I?</p>
+        <p className="text-xs font-bold tracking-[0.15em] text-[#2E4034]/40" dir="rtl">من أنا؟</p>
       </div>
 
       {/* Clues */}
@@ -230,15 +235,15 @@ function ActiveChallenge({
           if (i >= revealed) return null
           return (
             <div key={i} className="px-5 py-5 border-b border-[#2E4034]/8">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#2E4034]/30 mb-2">
+              <p className="text-[11px] font-black uppercase tracking-[0.2em] text-[#2E4034]/40 mb-2">
                 Clue {String(i + 1).padStart(2, '0')}
               </p>
               {/* English */}
-              <p className="text-sm text-[#2E4034] leading-relaxed font-serif italic mb-2">
+              <p className="text-base text-[#2E4034] leading-relaxed font-bold mb-2">
                 &ldquo;{clue}&rdquo;
               </p>
               {/* Arabic */}
-              <p className="text-sm text-[#2E4034]/50 leading-relaxed font-medium" dir="rtl">
+              <p className="text-base text-[#2E4034]/80 leading-relaxed font-bold" dir="rtl">
                 &laquo;{character.clues_ar[i]}&raquo;
               </p>
             </div>
@@ -251,10 +256,12 @@ function ActiveChallenge({
         <div className="px-5 py-3 border-b border-[#2E4034]/8">
           <button
             onClick={() => setRevealed(p => p + 1)}
-            className="text-xs font-bold text-[#416047] hover:text-[#2E4034] transition-colors tracking-wide uppercase"
+            className="text-xs font-black text-[#416047] hover:text-[#2E4034] transition-colors tracking-wide uppercase"
           >
-            Reveal clue {String(revealed + 1).padStart(2, '0')}
-            <span className="font-normal text-[#2E4034]/30 normal-case tracking-normal ml-1">(no penalty)</span>
+            Reveal Clue {String(revealed + 1).padStart(2, '0')}
+            <span className="font-bold text-[#D97746] normal-case tracking-normal ml-2">
+              (reward becomes {revealed === 1 ? '4' : '3'} coins)
+            </span>
           </button>
         </div>
       )}
@@ -264,13 +271,13 @@ function ActiveChallenge({
 
         {/* Attempts */}
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#2E4034]/30">Attempts</span>
+          <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#2E4034]/40">Attempts</span>
           <div className="flex gap-1.5 ml-1">
             {[0, 1, 2].map(i => (
               <div
                 key={i}
-                className="w-1.5 h-1.5 rounded-full"
-                style={{ background: '#D97746', opacity: i < attemptsLeft ? 1 : 0.15 }}
+                className="w-2 h-2 rounded-full"
+                style={{ background: '#D97746', opacity: i < attemptsLeft ? 1 : 0.2 }}
               />
             ))}
           </div>
@@ -291,22 +298,22 @@ function ActiveChallenge({
                   placeholder="Type a name in English or Arabic"
                   dir="auto"
                   disabled={pending}
-                  className="w-full border-0 border-b-2 border-[#2E4034]/20 bg-transparent text-sm text-[#2E4034] placeholder-[#2E4034]/25 py-2 focus:outline-none focus:border-[#416047] transition-colors"
+                  className="w-full border-0 border-b-2 border-[#2E4034]/30 bg-transparent text-base font-semibold text-[#2E4034] placeholder-[#2E4034]/30 py-2.5 focus:outline-none focus:border-[#416047] transition-colors"
                 />
 
                 {showSug && suggestions.length > 0 && (
                   <div
                     ref={sugRef}
-                    className="absolute z-20 left-0 right-0 top-full mt-1 bg-white border border-[#2E4034]/12 shadow-sm overflow-hidden"
+                    className="absolute z-20 left-0 right-0 top-full mt-1 bg-white border border-[#2E4034]/12 shadow-md overflow-hidden"
                   >
                     {suggestions.map(c => (
                       <button
                         key={c.id}
                         onMouseDown={e => { e.preventDefault(); pick(c) }}
-                        className="w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-[#416047]/5 transition-colors border-b border-[#2E4034]/6 last:border-0 text-left"
+                        className="w-full flex items-center justify-between px-4 py-3 text-sm hover:bg-[#416047]/5 transition-colors border-b border-[#2E4034]/6 last:border-0 text-left"
                       >
-                        <span className="font-semibold text-[#2E4034]">{c.name_en}</span>
-                        <span className="text-[#2E4034]/40 text-sm" dir="rtl">{c.name_ar}</span>
+                        <span className="font-bold text-[#2E4034]">{c.name_en}</span>
+                        <span className="text-[#2E4034]/50 font-bold text-sm" dir="rtl">{c.name_ar}</span>
                       </button>
                     ))}
                   </div>
@@ -314,7 +321,7 @@ function ActiveChallenge({
               </div>
 
               {msg && (
-                <p className="text-xs text-[#D97746] font-semibold mt-2">{msg}</p>
+                <p className="text-xs text-[#D97746] font-bold mt-2">{msg}</p>
               )}
             </div>
 
@@ -322,24 +329,25 @@ function ActiveChallenge({
             <button
               onClick={submit}
               disabled={pending || !guess.trim()}
-              className="w-full py-3 bg-[#2E4034] hover:bg-[#416047] text-white text-xs font-black tracking-[0.15em] uppercase transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              className="w-full py-3.5 bg-[#2E4034] hover:bg-[#416047] text-white text-xs font-black tracking-[0.18em] uppercase transition-colors disabled:opacity-30 disabled:cursor-not-allowed shadow-sm"
             >
-              {pending ? 'Checking' : 'Submit Answer'}
+              {pending ? 'Checking...' : 'Submit Answer'}
             </button>
 
             {/* Reward */}
             <div className="border-t border-[#2E4034]/8 pt-4">
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#2E4034]/30 mb-2">Coin Reward</p>
-              <div className="flex gap-4 text-xs text-[#2E4034]/60 font-medium">
-                <span>1st — <strong className="text-[#D97746]">6</strong></span>
-                <span>2nd — <strong className="text-[#D97746]">5</strong></span>
-                <span>3rd — <strong className="text-[#D97746]">4</strong></span>
-                <span>Others — <strong className="text-[#D97746]">2</strong></span>
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#2E4034]/40 mb-2">Coin Reward</p>
+              <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs font-bold text-[#2E4034]">
+                <span>Clue 1: <strong className="text-[#D97746] font-black">5 coins</strong></span>
+                <span className="text-[#2E4034]/20">/</span>
+                <span>Clue 2: <strong className="text-[#D97746] font-black">4 coins</strong></span>
+                <span className="text-[#2E4034]/20">/</span>
+                <span>Clue 3: <strong className="text-[#D97746] font-black">3 coins</strong></span>
               </div>
             </div>
           </>
         ) : (
-          <p className="text-sm text-[#D97746] font-semibold">No more attempts for today.</p>
+          <p className="text-sm text-[#D97746] font-bold">No more attempts for today.</p>
         )}
       </div>
 
@@ -352,17 +360,17 @@ function ActiveChallenge({
             </p>
             <div className="flex items-baseline gap-3 flex-wrap">
               <span className="text-2xl font-black text-[#2E4034]">{character.name_en}</span>
-              <span className="text-lg text-[#2E4034]/40" dir="rtl">{character.name_ar}</span>
+              <span className="text-lg text-[#2E4034]/50 font-bold" dir="rtl">{character.name_ar}</span>
             </div>
           </div>
           <div className="px-5 py-5 border-b border-[#2E4034]/8">
-            <p className="text-sm text-[#2E4034]/75 leading-relaxed">{character.biography}</p>
+            <p className="text-sm font-medium text-[#2E4034]/85 leading-relaxed">{character.biography}</p>
           </div>
           <div className="px-5 py-5">
-            <p className="text-sm text-[#416047] font-serif italic leading-relaxed">
+            <p className="text-sm text-[#416047] font-bold italic leading-relaxed">
               &ldquo;{character.key_verse}&rdquo;
             </p>
-            <p className="text-xs text-[#D97746] font-semibold mt-2">{character.key_verse_ref}</p>
+            <p className="text-xs text-[#D97746] font-bold mt-2">{character.key_verse_ref}</p>
           </div>
         </div>
       )}

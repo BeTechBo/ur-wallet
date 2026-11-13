@@ -95,7 +95,7 @@ export default function ScheduleView({ initialEvents }: { initialEvents: Schedul
   const monthLabel = MONTH_NAMES[startOfWeek.getMonth()];
   const endMonth = MONTH_NAMES[weekDays[6].getMonth()];
   const yearLabel = startOfWeek.getFullYear();
-  const monthDisplay = monthLabel === endMonth ? `${monthLabel} ${yearLabel}` : `${monthLabel} – ${endMonth} ${yearLabel}`;
+  const monthDisplay = monthLabel === endMonth ? `${monthLabel} ${yearLabel}` : `${monthLabel} to ${endMonth} ${yearLabel}`;
 
   const getEventsForDate = (date: Date) =>
     events
@@ -183,7 +183,7 @@ export default function ScheduleView({ initialEvents }: { initialEvents: Schedul
                           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-foreground/45 font-medium">
                             <span className="flex items-center gap-1">
                               <Clock className="w-3 h-3 shrink-0" />
-                              {formatTime(event.start_time)}{event.end_time && ` – ${formatTime(event.end_time)}`}
+                              {formatTime(event.start_time)}{event.end_time && ` to ${formatTime(event.end_time)}`}
                             </span>
                             <span className="w-px h-3 bg-foreground/15 hidden sm:block" />
                             <span className="flex items-center gap-1">
