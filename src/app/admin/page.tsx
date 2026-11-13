@@ -25,7 +25,7 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
 
   // Daily Challenge data
   let todayChallenge: { id: string; character_id: string; active_date: string } | null = null;
-  let recentChallenges: { id: string; character_id: string; active_date: string; solver_count: number }[] = [];
+  let usedChallenges: { id: string; character_id: string; active_date: string; solver_count: number }[] = [];
   let usedCharacterIds: string[] = [];
   try {
     const nowEgypt = new Date(Date.now() + 3 * 60 * 60 * 1000);
@@ -34,10 +34,6 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
     const cutoff = new Date(nowEgypt);
     cutoff.setUTCDate(cutoff.getUTCDate() - cutoffDaysBack);
     const cutoffStr = cutoff.toISOString().split('T')[0];
-
-    const sevenDaysAgo = new Date(nowEgypt);
-    sevenDaysAgo.setUTCDate(sevenDaysAgo.getUTCDate() - 7);
-    const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
 
     // All-time used characters (for no-repeat logic)
     const { data: allChallenges } = await adminClient
@@ -52,10 +48,9 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
       const activeRaw = allChallenges.find(c => c.active_date >= cutoffStr);
       todayChallenge = activeRaw || null;
 
-      // Recent 7-day history with solver counts
-      const recentRaw = allChallenges.filter(c => c.active_date >= sevenDaysAgoStr);
+      // All used challenges with solver counts
       const withCounts = await Promise.all(
-        recentRaw.map(async (ch) => {
+        allChallenges.map(async (ch) => {
           const { count } = await adminClient
             .from('challenge_submissions')
             .select('*', { count: 'exact', head: true })
@@ -63,7 +58,7 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
           return { ...ch, solver_count: count || 0 };
         })
       );
-      recentChallenges = withCounts;
+      usedChallenges = withCounts;
     }
   } catch (e) {
     // daily_challenges table may not exist yet
@@ -610,7 +605,7 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
 
       {/* Daily Bible Challenge Management */}
       <div className="mt-8">
-        <DailyChallengeAdmin todayChallenge={todayChallenge} recentChallenges={recentChallenges} usedCharacterIds={usedCharacterIds} />
+        <DailyChallengeAdmin todayChallenge={todayChallenge} usedChallenges={usedChallenges} usedCharacterIds={usedCharacterIds} />
       </div>
 
     </div>

@@ -1,11 +1,11 @@
-import { BookOpen, CalendarDays, Users, CheckCircle2, RotateCcw } from 'lucide-react'
+import { BookOpen, CalendarDays, Users, CheckCircle2, RotateCcw, Archive } from 'lucide-react'
 import { BIBLE_CHARACTERS } from '@/data/bible-characters'
 import { setDailyChallenge, resetDailyChallenge, resetTestCharacters } from '@/app/actions'
 import { SubmitButton } from '@/components/SubmitButton'
 
 type DailyChallengeAdminProps = {
   todayChallenge: { id: string; character_id: string; active_date: string } | null
-  recentChallenges: {
+  usedChallenges: {
     id: string
     character_id: string
     active_date: string
@@ -20,12 +20,12 @@ function getCharacter(characterId: string) {
 
 export default function DailyChallengeAdmin({
   todayChallenge,
-  recentChallenges,
+  usedChallenges,
   usedCharacterIds,
 }: DailyChallengeAdminProps) {
   const todayCharacter = todayChallenge ? getCharacter(todayChallenge.character_id) : null
   const todaySolverCount =
-    recentChallenges.find((r) => r.active_date === todayChallenge?.active_date)?.solver_count ?? 0
+    usedChallenges.find((r) => r.id === todayChallenge?.id)?.solver_count ?? 0
 
   const usedSet = new Set(usedCharacterIds)
   const availableCharacters = BIBLE_CHARACTERS.filter((c) => !usedSet.has(c.id))
@@ -39,9 +39,14 @@ export default function DailyChallengeAdmin({
           <BookOpen className="w-5 h-5 text-secondary" />
           <div>
             <h2 className="font-bold text-lg text-foreground">Daily Quest: Who Am I</h2>
-            <p className="text-xs text-foreground/50 mt-0.5">
-              {availableCharacters.length} of {BIBLE_CHARACTERS.length} characters remaining
-            </p>
+            <div className="flex items-center gap-3 text-xs font-semibold mt-1">
+              <span className="text-[#416047] bg-[#416047]/10 px-2.5 py-0.5 rounded-full">
+                {availableCharacters.length} options available
+              </span>
+              <span className="text-[#D97746] bg-[#D97746]/10 px-2.5 py-0.5 rounded-full">
+                {usedChallenges.length} used in challenges
+              </span>
+            </div>
           </div>
         </div>
 
@@ -80,7 +85,7 @@ export default function DailyChallengeAdmin({
               {todayCharacter.name_en}{' '}
               <span className="text-foreground/60 font-normal text-sm" dir="rtl">({todayCharacter.name_ar})</span>
             </p>
-            <p className="text-xs text-foreground/50">{todayChallenge.active_date}</p>
+            <p className="text-xs text-foreground/50">Active Date: {todayChallenge.active_date}</p>
             <div className="flex items-center gap-1 text-xs text-secondary font-medium">
               <Users className="w-3 h-3" />
               {todaySolverCount} {todaySolverCount === 1 ? 'solver' : 'solvers'} so far
@@ -94,12 +99,18 @@ export default function DailyChallengeAdmin({
       {/* Set new challenge form */}
       <form action={setDailyChallenge} className="space-y-4">
         <div>
-          <label className="block text-sm font-semibold text-foreground/80 mb-2" htmlFor="characterId">
-            Set Today&apos;s Challenge
-          </label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-semibold text-foreground/80" htmlFor="characterId">
+              Choose Character for Today
+            </label>
+            <span className="text-xs text-foreground/40 font-medium">
+              Removed from options once added
+            </span>
+          </div>
+
           {availableCharacters.length === 0 ? (
             <div className="rounded-xl border border-secondary/20 bg-[#FCF8F2] px-4 py-4 text-sm text-foreground/50 italic text-center">
-              All 30 characters have been used! You can reset any character from recent history below.
+              All 30 characters have been used. You can reset any character in the Used Characters widget below to make it available again.
             </div>
           ) : (
             <select
@@ -107,9 +118,9 @@ export default function DailyChallengeAdmin({
               name="characterId"
               required
               defaultValue=""
-              className="w-full rounded-xl border border-secondary/30 bg-[#FCF8F2] px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/50 transition"
+              className="w-full rounded-xl border border-secondary/30 bg-[#FCF8F2] px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/50 transition font-medium"
             >
-              <option value="" disabled>Choose a character (unused only)</option>
+              <option value="" disabled>Select an available character ({availableCharacters.length} remaining)</option>
               {availableCharacters.map((char) => (
                 <option key={char.id} value={char.id}>
                   {char.name_en} ({char.name_ar}) [{char.testament === 'OT' ? 'Old Testament' : 'New Testament'}]
@@ -121,53 +132,85 @@ export default function DailyChallengeAdmin({
 
         {availableCharacters.length > 0 && (
           <SubmitButton className="w-full sm:w-auto rounded-xl bg-primary hover:bg-primary/90 text-white font-semibold px-6 py-3 text-sm transition">
-            Set as Active Challenge
+            Add to Daily Challenges
           </SubmitButton>
         )}
       </form>
 
-      {/* Recent history */}
-      {recentChallenges.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 text-foreground/70 font-semibold text-sm">
-            <CheckCircle2 className="w-4 h-4 text-secondary" />
-            Recent Challenges
+      {/* Used Characters Widget */}
+      <div className="space-y-4 pt-4 border-t border-secondary/20">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+          <div className="flex items-center gap-2 text-foreground font-bold text-base">
+            <Archive className="w-4 h-4 text-secondary" />
+            Used Characters Widget ({usedChallenges.length} of {BIBLE_CHARACTERS.length})
           </div>
-          <ul className="divide-y divide-secondary/10 rounded-xl border border-secondary/20 overflow-hidden">
-            {recentChallenges.map((rc) => {
-              const ch = getCharacter(rc.character_id)
+          <p className="text-xs text-foreground/40 font-medium">
+            Characters listed here are excluded from the options dropdown above
+          </p>
+        </div>
+
+        {usedChallenges.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-secondary/30 bg-[#FCF8F2] p-6 text-center text-xs text-foreground/50 font-medium">
+            No characters have been used yet. All 30 characters are available in the options dropdown above.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {usedChallenges.map((uc) => {
+              const ch = getCharacter(uc.character_id)
+              const isActiveToday = uc.id === todayChallenge?.id
               return (
-                <li
-                  key={rc.id}
-                  className="flex items-center justify-between px-5 py-3 bg-[#FCF8F2] hover:bg-secondary/5 transition text-sm"
+                <div
+                  key={uc.id}
+                  className={`flex items-start justify-between p-4 rounded-xl border transition ${
+                    isActiveToday
+                      ? 'bg-[#416047]/5 border-[#416047]/30'
+                      : 'bg-[#FCF8F2] border-secondary/20'
+                  }`}
                 >
-                  <div>
-                    <span className="font-medium text-foreground">
-                      {ch ? `${ch.name_en} (${ch.name_ar})` : rc.character_id}
-                    </span>
-                    <span className="ml-2 text-xs text-foreground/40">{rc.active_date}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-1 text-xs text-secondary font-semibold">
-                      <Users className="w-3 h-3" />
-                      {rc.solver_count}
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-bold text-sm text-foreground">
+                        {ch ? ch.name_en : uc.character_id}
+                      </span>
+                      <span className="text-xs text-foreground/50 font-medium" dir="rtl">
+                        ({ch ? ch.name_ar : uc.character_id})
+                      </span>
+                      {isActiveToday ? (
+                        <span className="bg-[#416047] text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                          Active Today
+                        </span>
+                      ) : (
+                        <span className="bg-secondary/15 text-secondary text-[10px] font-bold px-2 py-0.5 rounded-full">
+                          Used
+                        </span>
+                      )}
                     </div>
-                    <form action={resetDailyChallenge}>
-                      <input type="hidden" name="challengeId" value={rc.id} />
-                      <button
-                        type="submit"
-                        className="text-xs text-red-500 hover:text-red-700 font-semibold underline transition cursor-pointer"
-                      >
-                        Reset
-                      </button>
-                    </form>
+                    <div className="flex items-center gap-3 text-xs text-foreground/50 font-medium">
+                      <span>Date: {uc.active_date}</span>
+                      <span>·</span>
+                      <span className="flex items-center gap-1 text-secondary font-semibold">
+                        <Users className="w-3 h-3" />
+                        {uc.solver_count} solvers
+                      </span>
+                    </div>
                   </div>
-                </li>
+
+                  <form action={resetDailyChallenge}>
+                    <input type="hidden" name="challengeId" value={uc.id} />
+                    <button
+                      type="submit"
+                      title="Remove this challenge and restore this character to the dropdown options"
+                      className="text-xs text-red-600 hover:text-red-700 font-bold underline transition cursor-pointer ml-3 mt-1"
+                    >
+                      Reset
+                    </button>
+                  </form>
+                </div>
               )
             })}
-          </ul>
-        </div>
-      )}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
