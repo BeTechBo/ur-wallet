@@ -390,12 +390,13 @@ export default function DailyChallenge({
         {!challenge && <NoChallengeCard />}
         {challenge && character && !userSubmission && (
           <ActiveChallenge
+            key={challenge.id}
             challenge={challenge} character={character}
             submissionsCount={submissionsCount} userId={userId}
           />
         )}
         {challenge && character && userSubmission && (
-          <SolvedCard character={character} submission={userSubmission} rank={submissionsCount} />
+          <SolvedCard key={challenge.id} character={character} submission={userSubmission} rank={submissionsCount} />
         )}
       </div>
     </>

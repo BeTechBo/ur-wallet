@@ -657,27 +657,41 @@ export async function setDailyChallenge(formData: FormData) {
 
   const adminClient = createAdminClient()
 
-  // Block re-use of characters already used
-  const { data: existing } = await adminClient
-    .from('daily_challenges')
-    .select('id')
-    .eq('character_id', characterId)
-    .limit(1)
-    .single()
-
-  if (existing) {
-    // Character already used — silently return (admin dropdown should prevent this)
-    return
-  }
-
   // Get today's date in Egypt timezone (UTC+3)
   const nowEgypt = new Date(Date.now() + 3 * 60 * 60 * 1000)
   const todayEgypt = nowEgypt.toISOString().split('T')[0]
 
-  await adminClient.from('daily_challenges').insert({
+  // Block re-use of characters already used on PRIOR days
+  const { data: existingPast } = await adminClient
+    .from('daily_challenges')
+    .select('id')
+    .eq('character_id', characterId)
+    .neq('active_date', todayEgypt)
+    .limit(1)
+    .maybeSingle()
+
+  if (existingPast) {
+    // Character was already used on a previous day
+    return
+  }
+
+  // Delete today's existing challenge if admin is changing it.
+  // Foreign key cascade automatically cleans up submissions for today's replaced challenge,
+  // allowing a fresh test or new active challenge with 0 solvers.
+  await adminClient
+    .from('daily_challenges')
+    .delete()
+    .eq('active_date', todayEgypt)
+
+  // Insert the new active challenge
+  const { error: insertError } = await adminClient.from('daily_challenges').insert({
     character_id: characterId,
     active_date: todayEgypt,
   })
+
+  if (insertError) {
+    console.error('Failed to set daily challenge:', insertError)
+  }
 
   revalidatePath('/admin')
   revalidatePath('/wallet')

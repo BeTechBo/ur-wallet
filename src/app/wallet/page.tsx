@@ -88,6 +88,7 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
   let todayChallenge: { id: string; character_id: string; active_date: string } | null = null;
   let userSubmission: { solved_at: string; coins_awarded: number } | null = null;
   let submissionsCount = 0;
+  const adminClient = createAdminClient();
   try {
     const nowEgypt = new Date(Date.now() + 3 * 60 * 60 * 1000);
     const egyptHour = nowEgypt.getUTCHours();
@@ -99,28 +100,28 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
     cutoff.setUTCDate(cutoff.getUTCDate() - cutoffDaysBack);
     const cutoffStr = cutoff.toISOString().split('T')[0];
 
-    const { data: challengeData } = await supabase
+    const { data: challengeData } = await adminClient
       .from('daily_challenges')
       .select('id, character_id, active_date')
       .gte('active_date', cutoffStr)
       .order('active_date', { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
     todayChallenge = challengeData || null;
 
     if (todayChallenge) {
-      const { count } = await supabase
+      const { count } = await adminClient
         .from('challenge_submissions')
         .select('*', { count: 'exact', head: true })
         .eq('challenge_id', todayChallenge.id);
       submissionsCount = count || 0;
 
-      const { data: subData } = await supabase
+      const { data: subData } = await adminClient
         .from('challenge_submissions')
         .select('solved_at, coins_awarded')
         .eq('challenge_id', todayChallenge.id)
         .eq('user_id', authData.user.id)
-        .single();
+        .maybeSingle();
       userSubmission = subData || null;
     }
   } catch (e) {
@@ -132,7 +133,6 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
     : null;
 
   // Calculate Rank
-  const adminClient = createAdminClient();
   const { data: allTxs } = await adminClient.from('transactions').select('user_id, points_added');
   const userTotals: Record<string, number> = {};
   allTxs?.forEach(tx => {
@@ -499,14 +499,7 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
       )}
 
       {currentTab === 'challenge' && (
-        <div className="bg-zakhrafa rounded-2xl p-6 sm:p-8 border border-secondary/30 shadow-sm">
-          <div className="flex items-center gap-3 mb-8 border-b border-gray-100 pb-4">
-            <ScrollText className="w-5 h-5 text-secondary" />
-            <div>
-              <h2 className="text-xl font-bold text-foreground">Daily Quest — Who Am I?</h2>
-              <p className="text-xs text-foreground/50 mt-0.5">A new Bible character mystery every day at 10:00 PM</p>
-            </div>
-          </div>
+        <div className="py-2">
           <DailyChallenge
             challenge={todayChallenge}
             character={challengeCharacter}
