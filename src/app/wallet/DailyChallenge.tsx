@@ -186,7 +186,8 @@ function ActiveChallenge({
       if (!res.success) { triggerShake(res.error || 'Something went wrong.'); return }
       if (res.correct) {
         playCorrectSound()
-        setSolved({ coinsAwarded: res.coinsAwarded ?? 5, rank: res.rank ?? 1 })
+        const awarded = res.coinsAwarded ?? (revealed === 1 ? 5 : revealed === 2 ? 4 : 3)
+        setSolved({ coinsAwarded: awarded, rank: res.rank ?? 1 })
         setShowBio(true)
       } else {
         const rem = attemptsLeft - 1
@@ -259,8 +260,8 @@ function ActiveChallenge({
             className="text-xs font-black text-[#416047] hover:text-[#2E4034] transition-colors tracking-wide uppercase cursor-pointer"
           >
             Reveal Clue {String(revealed + 1).padStart(2, '0')}
-            <span className="font-bold text-[#2E4034]/40 normal-case tracking-normal ml-2">
-              (no penalty)
+            <span className="font-bold text-[#D97746] normal-case tracking-normal ml-2">
+              (reward drops to {revealed === 1 ? '4' : '3'} coins)
             </span>
           </button>
         </div>
@@ -337,8 +338,18 @@ function ActiveChallenge({
             {/* Reward */}
             <div className="border-t border-[#2E4034]/8 pt-4">
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#2E4034]/40 mb-2">Coin Reward</p>
-              <div className="text-xs font-bold text-[#2E4034]">
-                Solve correctly to earn <strong className="text-[#D97746] font-black">5 coins</strong>
+              <div className="flex flex-wrap items-center gap-3 text-xs font-bold text-[#2E4034]">
+                <span className={revealed === 1 ? 'text-[#D97746] font-black' : 'text-[#2E4034]/40'}>
+                  Clue 1: 5 coins {revealed === 1 && '(active)'}
+                </span>
+                <span className="text-[#2E4034]/20">/</span>
+                <span className={revealed === 2 ? 'text-[#D97746] font-black' : 'text-[#2E4034]/40'}>
+                  Clue 2: 4 coins {revealed === 2 && '(active)'}
+                </span>
+                <span className="text-[#2E4034]/20">/</span>
+                <span className={revealed === 3 ? 'text-[#D97746] font-black' : 'text-[#2E4034]/40'}>
+                  Clue 3: 3 coins {revealed === 3 && '(active)'}
+                </span>
               </div>
             </div>
           </>
