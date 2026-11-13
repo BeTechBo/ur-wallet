@@ -1,4 +1,4 @@
-import { Trophy, History, BookOpen, Music, Book, Home, HeartHandshake, Package, Flame, Star, User, Calendar, Lightbulb, Images } from 'lucide-react';
+import { Trophy, History, BookOpen, Music, Book, Home, HeartHandshake, Package, Flame, Star, User, Calendar, Lightbulb, Images, ScrollText } from 'lucide-react';
 import AnimatedWallet from '@/components/AnimatedWallet';
 import URCoin from '@/components/URCoin';
 import { createClient } from '@/utils/supabase/server';
@@ -8,6 +8,8 @@ import { PACKAGES } from '@/lib/packages';
 import Link from 'next/link';
 import ScheduleView from './ScheduleView';
 import MemoriesView from './MemoriesView';
+import DailyChallenge from './DailyChallenge';
+import { BIBLE_CHARACTERS } from '@/data/bible-characters';
 
 const NaqoosIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -81,6 +83,45 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
     console.error('Memory albums table missing');
   }
 
+  // Fetch today's Daily Challenge (Egypt timezone UTC+3)
+  let todayChallenge: { id: string; character_id: string; active_date: string } | null = null;
+  let userSubmission: { solved_at: string; coins_awarded: number } | null = null;
+  let submissionsCount = 0;
+  try {
+    const nowEgypt = new Date(Date.now() + 3 * 60 * 60 * 1000);
+    const todayEgypt = nowEgypt.toISOString().split('T')[0];
+    const { data: challengeData } = await supabase
+      .from('daily_challenges')
+      .select('id, character_id, active_date')
+      .eq('active_date', todayEgypt)
+      .single();
+    todayChallenge = challengeData || null;
+
+    if (todayChallenge) {
+      // Count total solvers today (use supabase client - adminClient declared below)
+      const { count } = await supabase
+        .from('challenge_submissions')
+        .select('*', { count: 'exact', head: true })
+        .eq('challenge_id', todayChallenge.id);
+      submissionsCount = count || 0;
+
+      // Check if this user already solved it
+      const { data: subData } = await supabase
+        .from('challenge_submissions')
+        .select('solved_at, coins_awarded')
+        .eq('challenge_id', todayChallenge.id)
+        .eq('user_id', authData.user.id)
+        .single();
+      userSubmission = subData || null;
+    }
+  } catch (e) {
+    // daily_challenges table may not exist yet
+  }
+
+  const challengeCharacter = todayChallenge
+    ? BIBLE_CHARACTERS.find(c => c.id === todayChallenge!.character_id) ?? null
+    : null;
+
   // Calculate Rank
   const adminClient = createAdminClient();
   const { data: allTxs } = await adminClient.from('transactions').select('user_id, points_added');
@@ -143,7 +184,8 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
           { id: 'verses', label: 'Verses Collected', icon: BookOpen },
           { id: 'badges', label: 'Badges', icon: Package },
           { id: 'memories', label: 'Memories', icon: Images },
-          { id: 'schedule', label: 'Schedule', icon: Calendar }
+          { id: 'schedule', label: 'Schedule', icon: Calendar },
+          { id: 'challenge', label: 'من أنا؟', icon: ScrollText },
         ].map(tab => {
           const isActive = currentTab === tab.id;
           const Icon = tab.icon;
@@ -445,6 +487,25 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
 
       {currentTab === 'schedule' && (
         <ScheduleView initialEvents={events || []} />
+      )}
+
+      {currentTab === 'challenge' && (
+        <div className="bg-zakhrafa rounded-2xl p-6 sm:p-8 border border-secondary/30 shadow-sm">
+          <div className="flex items-center gap-3 mb-8 border-b border-gray-100 pb-4">
+            <ScrollText className="w-5 h-5 text-secondary" />
+            <div>
+              <h2 className="text-xl font-bold text-foreground">من أنا؟ — Daily Mystery</h2>
+              <p className="text-xs text-foreground/50 mt-0.5">A new Bible character challenge every evening at 10:00 PM</p>
+            </div>
+          </div>
+          <DailyChallenge
+            challenge={todayChallenge}
+            character={challengeCharacter}
+            userSubmission={userSubmission}
+            submissionsCount={submissionsCount}
+            userId={authData.user.id}
+          />
+        </div>
       )}
     </div>
   );

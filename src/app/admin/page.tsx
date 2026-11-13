@@ -4,6 +4,7 @@ import { createAdminClient } from '@/utils/supabase/admin';
 import AwardForm from './AwardForm';
 import AdminSchedule from './AdminSchedule';
 import MemoriesAdmin from './MemoriesAdmin';
+import DailyChallengeAdmin from './DailyChallengeAdmin';
 import { SubmitButton } from '@/components/SubmitButton';
 
 export default async function AdminDashboard(props: { searchParams?: Promise<{ error?: string }> }) {
@@ -21,6 +22,41 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
       .order('event_date', { ascending: false });
     memoryAlbums = data || [];
   } catch (e) {}
+
+  // Daily Challenge data
+  let todayChallenge: { id: string; character_id: string; active_date: string } | null = null;
+  let recentChallenges: { id: string; character_id: string; active_date: string; solver_count: number }[] = [];
+  try {
+    const nowEgypt = new Date(Date.now() + 3 * 60 * 60 * 1000);
+    const todayEgypt = nowEgypt.toISOString().split('T')[0];
+    const sevenDaysAgo = new Date(Date.now() + 3 * 60 * 60 * 1000);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
+
+    const { data: challengeData } = await adminClient
+      .from('daily_challenges')
+      .select('id, character_id, active_date')
+      .gte('active_date', sevenDaysAgoStr)
+      .order('active_date', { ascending: false });
+
+    if (challengeData && challengeData.length > 0) {
+      todayChallenge = challengeData.find(c => c.active_date === todayEgypt) || null;
+
+      // For each challenge, count solvers
+      const withCounts = await Promise.all(
+        challengeData.map(async (ch) => {
+          const { count } = await adminClient
+            .from('challenge_submissions')
+            .select('*', { count: 'exact', head: true })
+            .eq('challenge_id', ch.id);
+          return { ...ch, solver_count: count || 0 };
+        })
+      );
+      recentChallenges = withCounts;
+    }
+  } catch (e) {
+    // daily_challenges table may not exist yet
+  }
 
   // Schedule tracking
   const sixDaysAgo = new Date();
@@ -559,6 +595,11 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
       {/* Memories Management */}
       <div className="mt-8">
         <MemoriesAdmin initialAlbums={memoryAlbums} />
+      </div>
+
+      {/* Daily Bible Challenge Management */}
+      <div className="mt-8">
+        <DailyChallengeAdmin todayChallenge={todayChallenge} recentChallenges={recentChallenges} />
       </div>
 
     </div>

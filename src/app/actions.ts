@@ -576,3 +576,99 @@ export async function distributeLeaderboard(formData: FormData) {
 
   revalidatePath('/admin');
 }
+
+// SUBMIT DAILY CHALLENGE ANSWER
+export async function submitChallengeAnswer({
+  challengeId,
+  userId,
+  guess,
+}: {
+  challengeId: string
+  userId: string
+  guess: string
+}): Promise<{ success: boolean; correct: boolean; coinsAwarded?: number; rank?: number; error?: string }> {
+  const adminClient = createAdminClient()
+
+  // Get the challenge to find character_id
+  const { data: challenge } = await adminClient
+    .from('daily_challenges')
+    .select('character_id')
+    .eq('id', challengeId)
+    .single()
+
+  if (!challenge) return { success: false, correct: false, error: 'Challenge not found' }
+
+  // Check if already submitted
+  const { data: existing } = await adminClient
+    .from('challenge_submissions')
+    .select('id')
+    .eq('challenge_id', challengeId)
+    .eq('user_id', userId)
+    .single()
+
+  if (existing) return { success: false, correct: false, error: 'Already submitted' }
+
+  // Load character from data file and check answer
+  const { BIBLE_CHARACTERS } = await import('@/data/bible-characters')
+  const character = BIBLE_CHARACTERS.find(c => c.id === challenge.character_id)
+  if (!character) return { success: false, correct: false, error: 'Character not found' }
+
+  const normalizedGuess = guess.trim().toLowerCase()
+  const isCorrect =
+    normalizedGuess === character.name_en.toLowerCase() ||
+    normalizedGuess === character.name_ar.toLowerCase() ||
+    character.name_en.toLowerCase().includes(normalizedGuess) ||
+    character.name_ar.includes(guess.trim())
+
+  if (!isCorrect) return { success: true, correct: false }
+
+  // Count how many have already solved it correctly (to determine rank)
+  const { count } = await adminClient
+    .from('challenge_submissions')
+    .select('*', { count: 'exact', head: true })
+    .eq('challenge_id', challengeId)
+
+  const rank = (count || 0) + 1
+  const coinsAwarded = rank === 1 ? 6 : rank === 2 ? 5 : rank === 3 ? 4 : 2
+
+  // Insert submission
+  await adminClient.from('challenge_submissions').insert({
+    challenge_id: challengeId,
+    user_id: userId,
+    coins_awarded: coinsAwarded,
+  })
+
+  // Insert transaction (adds coins to wallet)
+  await adminClient.from('transactions').insert({
+    user_id: userId,
+    points_added: coinsAwarded,
+    event_name: `Daily Mystery: ${character.name_en} (${character.name_ar})`,
+  })
+
+  revalidatePath('/wallet')
+
+  return { success: true, correct: true, coinsAwarded, rank }
+}
+
+// ADMIN: SET TODAY'S CHALLENGE
+export async function setDailyChallenge(formData: FormData) {
+  const characterId = formData.get('characterId') as string
+  if (!characterId) return
+
+  const adminClient = createAdminClient()
+
+  // Get today's date in Egypt timezone (UTC+3)
+  const nowEgypt = new Date(Date.now() + 3 * 60 * 60 * 1000)
+  const todayEgypt = nowEgypt.toISOString().split('T')[0]
+
+  await adminClient.from('daily_challenges').upsert(
+    {
+      character_id: characterId,
+      active_date: todayEgypt,
+    },
+    { onConflict: 'active_date' }
+  )
+
+  revalidatePath('/admin')
+  revalidatePath('/wallet')
+}
