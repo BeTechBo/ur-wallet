@@ -108,8 +108,8 @@ export const versesData = [
     "id": 16,
     "text": "أَيُّهَا الْحَبِيبُ، فِي كُلِّ شَيْءٍ أَرُومُ أَنْ تَكُونَ نَاجِحًا وَصَحِيحًا، كَمَا أَنَّ نَفْسَكَ نَاجِحَةٌ.",
     "reference": "3 يو 1: 2",
-    "english_text": "The same was in the beginning with God.",
-    "english_reference": "John 1:2"
+    "english_text": "Beloved, I pray that you may prosper in all things and be in health, just as your soul prospers.",
+    "english_reference": "3 John 1:2"
   },
   {
     "id": 17,
@@ -136,8 +136,8 @@ export const versesData = [
     "id": 20,
     "text": "نَصِيبِي هُوَ الرَّبُّ، قَالَتْ نَفْسِي، مِنْ أَجْلِ ذلِكَ أَرْجُوهُ",
     "reference": "مرا 3: 24",
-    "english_text": "If a kingdom is divided against itself, that kingdom cannot stand.",
-    "english_reference": "Mark 3:24"
+    "english_text": "“The Lord is my portion,” says my soul, “therefore I will hope in him.”",
+    "english_reference": "Lamentations 3:24"
   },
   {
     "id": 21,
@@ -185,8 +185,8 @@ export const versesData = [
     "id": 27,
     "text": "من سمع لي فلا يخزي، ومن عمل بإرشادي فلا يخطأ.",
     "reference": "يشوع بن سيراخ 24: 30",
-    "english_text": "And I came out as a  stream from a river, And as a conduit into a garden.",
-    "english_reference": "Sirach 24:30"
+    "english_text": "Whoever listens to me will not be put to shame, and those who work with me will not sin.",
+    "english_reference": "Sirach 24:22"
   },
   {
     "id": 28,
@@ -254,7 +254,7 @@ export const versesData = [
   {
     "id": 37,
     "text": "لأَنَّهُ يُخَبِّئُنِي فِي مَظَلَّتِهِ فِي يَوْمِ الشَّرِّ. يَسْتُرُنِي بِسِتْرِ خَيْمَتِهِ. عَلَى صَخْرَةٍ يَرْفَعُنِي.",
-    "reference": "**مزمور 27: 5**",
+    "reference": "مزمور 27: 5",
     "english_text": "For in the day of trouble, he will keep me secretly in his pavilion. In the secret place of his tabernacle, he will hide me. He will lift me up on a rock.",
     "english_reference": "Psalms 27:5"
   },
