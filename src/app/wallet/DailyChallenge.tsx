@@ -186,7 +186,7 @@ function ActiveChallenge({
       if (!res.success) { triggerShake(res.error || 'Something went wrong.'); return }
       if (res.correct) {
         playCorrectSound()
-        setSolved({ coinsAwarded: res.coinsAwarded ?? (revealed === 1 ? 5 : revealed === 2 ? 4 : 3), rank: res.rank ?? 1 })
+        setSolved({ coinsAwarded: res.coinsAwarded ?? 5, rank: res.rank ?? 1 })
         setShowBio(true)
       } else {
         const rem = attemptsLeft - 1
@@ -256,11 +256,11 @@ function ActiveChallenge({
         <div className="px-5 py-3 border-b border-[#2E4034]/8">
           <button
             onClick={() => setRevealed(p => p + 1)}
-            className="text-xs font-black text-[#416047] hover:text-[#2E4034] transition-colors tracking-wide uppercase"
+            className="text-xs font-black text-[#416047] hover:text-[#2E4034] transition-colors tracking-wide uppercase cursor-pointer"
           >
             Reveal Clue {String(revealed + 1).padStart(2, '0')}
-            <span className="font-bold text-[#D97746] normal-case tracking-normal ml-2">
-              (reward becomes {revealed === 1 ? '4' : '3'} coins)
+            <span className="font-bold text-[#2E4034]/40 normal-case tracking-normal ml-2">
+              (no penalty)
             </span>
           </button>
         </div>
@@ -337,12 +337,8 @@ function ActiveChallenge({
             {/* Reward */}
             <div className="border-t border-[#2E4034]/8 pt-4">
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#2E4034]/40 mb-2">Coin Reward</p>
-              <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs font-bold text-[#2E4034]">
-                <span>Clue 1: <strong className="text-[#D97746] font-black">5 coins</strong></span>
-                <span className="text-[#2E4034]/20">/</span>
-                <span>Clue 2: <strong className="text-[#D97746] font-black">4 coins</strong></span>
-                <span className="text-[#2E4034]/20">/</span>
-                <span>Clue 3: <strong className="text-[#D97746] font-black">3 coins</strong></span>
+              <div className="text-xs font-bold text-[#2E4034]">
+                Solve correctly to earn <strong className="text-[#D97746] font-black">5 coins</strong>
               </div>
             </div>
           </>

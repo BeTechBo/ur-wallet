@@ -632,12 +632,8 @@ export async function submitChallengeAnswer({
 
   const rank = (count || 0) + 1
 
-  // Coins awarded based on clue level solved from:
-  // 1st clue: 5 coins
-  // 2nd clue: 4 coins
-  // 3rd clue: 3 coins
-  const cluesCount = Math.max(1, Math.min(3, cluesRevealed))
-  const coinsAwarded = cluesCount === 1 ? 5 : cluesCount === 2 ? 4 : 3
+  // Always 5 coins awarded regardless of which clue was revealed
+  const coinsAwarded = 5
 
   // Insert submission
   await adminClient.from('challenge_submissions').insert({
