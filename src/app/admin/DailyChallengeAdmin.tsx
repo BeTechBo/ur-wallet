@@ -1,4 +1,4 @@
-import { BookOpen, CalendarDays, Trophy, Users } from 'lucide-react'
+import { BookOpen, CalendarDays, Users, CheckCircle2 } from 'lucide-react'
 import { BIBLE_CHARACTERS } from '@/data/bible-characters'
 import { setDailyChallenge } from '@/app/actions'
 import { SubmitButton } from '@/components/SubmitButton'
@@ -11,6 +11,7 @@ type DailyChallengeAdminProps = {
     active_date: string
     solver_count: number
   }[]
+  usedCharacterIds: string[]
 }
 
 function getCharacter(characterId: string) {
@@ -20,75 +21,92 @@ function getCharacter(characterId: string) {
 export default function DailyChallengeAdmin({
   todayChallenge,
   recentChallenges,
+  usedCharacterIds,
 }: DailyChallengeAdminProps) {
   const todayCharacter = todayChallenge ? getCharacter(todayChallenge.character_id) : null
   const todaySolverCount =
     recentChallenges.find((r) => r.active_date === todayChallenge?.active_date)?.solver_count ?? 0
 
+  const usedSet = new Set(usedCharacterIds)
+  const availableCharacters = BIBLE_CHARACTERS.filter((c) => !usedSet.has(c.id))
+
   return (
     <div className="bg-white rounded-2xl p-8 border border-secondary/30 shadow-sm space-y-8">
-      {/* Section Header */}
+      {/* Header */}
       <div className="flex items-center gap-3">
         <BookOpen className="w-5 h-5 text-secondary" />
-        <h2 className="font-bold text-lg text-foreground">Who Am I? — Daily Bible Challenge</h2>
+        <div>
+          <h2 className="font-bold text-lg text-foreground">Daily Quest — Who Am I?</h2>
+          <p className="text-xs text-foreground/50 mt-0.5">
+            {availableCharacters.length} of {BIBLE_CHARACTERS.length} characters remaining
+          </p>
+        </div>
       </div>
 
-      {/* Today's Active Challenge */}
+      {/* Today's active challenge */}
       <div className="rounded-xl border border-primary/20 bg-[#FCF8F2] p-5 space-y-2">
         <div className="flex items-center gap-2 text-primary font-semibold text-sm uppercase tracking-wide">
           <CalendarDays className="w-4 h-4" />
-          Today's Challenge
+          Active Challenge
         </div>
         {todayCharacter && todayChallenge ? (
           <div className="space-y-1">
             <p className="text-foreground font-bold text-base">
               {todayCharacter.name_en}{' '}
-              <span className="text-foreground/60 font-normal text-sm">({todayCharacter.name_ar})</span>
+              <span className="text-foreground/60 font-normal text-sm" dir="rtl">({todayCharacter.name_ar})</span>
             </p>
             <p className="text-xs text-foreground/50">{todayChallenge.active_date}</p>
             <div className="flex items-center gap-1 text-xs text-secondary font-medium">
               <Users className="w-3 h-3" />
-              {todaySolverCount} {todaySolverCount === 1 ? 'solver' : 'solvers'} today
+              {todaySolverCount} {todaySolverCount === 1 ? 'solver' : 'solvers'} so far
             </div>
           </div>
         ) : (
-          <p className="text-foreground/50 text-sm italic">No challenge set for today yet.</p>
+          <p className="text-foreground/50 text-sm italic">No challenge is active right now.</p>
         )}
       </div>
 
-      {/* Set Today's Challenge Form */}
+      {/* Set new challenge form */}
       <form action={setDailyChallenge} className="space-y-4">
-        <label className="block text-sm font-semibold text-foreground/80" htmlFor="characterId">
-          Set as Today's Character
-        </label>
-        <select
-          id="characterId"
-          name="characterId"
-          required
-          defaultValue={todayChallenge?.character_id ?? ''}
-          className="w-full rounded-xl border border-secondary/30 bg-[#FCF8F2] px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/50 transition"
-        >
-          <option value="" disabled>
-            — Choose a character —
-          </option>
-          {BIBLE_CHARACTERS.map((char) => (
-            <option key={char.id} value={char.id}>
-              {char.name_en} ({char.name_ar}) — {char.testament === 'OT' ? 'Old Testament' : 'New Testament'}
-            </option>
-          ))}
-        </select>
+        <div>
+          <label className="block text-sm font-semibold text-foreground/80 mb-2" htmlFor="characterId">
+            Set Today&apos;s Challenge
+          </label>
+          {availableCharacters.length === 0 ? (
+            <div className="rounded-xl border border-secondary/20 bg-[#FCF8F2] px-4 py-4 text-sm text-foreground/50 italic text-center">
+              🎉 All 30 characters have been used! You can reset if needed.
+            </div>
+          ) : (
+            <select
+              id="characterId"
+              name="characterId"
+              required
+              defaultValue=""
+              className="w-full rounded-xl border border-secondary/30 bg-[#FCF8F2] px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/50 transition"
+            >
+              <option value="" disabled>— Choose a character (unused only) —</option>
+              {availableCharacters.map((char) => (
+                <option key={char.id} value={char.id}>
+                  {char.name_en} ({char.name_ar}) — {char.testament === 'OT' ? 'Old Testament' : 'New Testament'}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
 
-        <SubmitButton className="w-full sm:w-auto rounded-xl bg-primary hover:bg-primary/90 text-white font-semibold px-6 py-3 text-sm transition">
-          Set as Today's Challenge
-        </SubmitButton>
+        {availableCharacters.length > 0 && (
+          <SubmitButton className="w-full sm:w-auto rounded-xl bg-primary hover:bg-primary/90 text-white font-semibold px-6 py-3 text-sm transition">
+            Set as Active Challenge
+          </SubmitButton>
+        )}
       </form>
 
-      {/* Recent History */}
+      {/* Recent history */}
       {recentChallenges.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-foreground/70 font-semibold text-sm">
-            <Trophy className="w-4 h-4 text-secondary" />
-            Recent Challenges (Last 7 Days)
+            <CheckCircle2 className="w-4 h-4 text-secondary" />
+            Recent Challenges
           </div>
           <ul className="divide-y divide-secondary/10 rounded-xl border border-secondary/20 overflow-hidden">
             {recentChallenges.map((rc) => {

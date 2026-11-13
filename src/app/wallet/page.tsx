@@ -83,29 +83,38 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
     console.error('Memory albums table missing');
   }
 
-  // Fetch today's Daily Challenge (Egypt timezone UTC+3)
+  // Fetch active Daily Challenge (Egypt UTC+3)
+  // Active = most recent challenge; expires at 10:00 PM Egypt the FOLLOWING day
   let todayChallenge: { id: string; character_id: string; active_date: string } | null = null;
   let userSubmission: { solved_at: string; coins_awarded: number } | null = null;
   let submissionsCount = 0;
   try {
     const nowEgypt = new Date(Date.now() + 3 * 60 * 60 * 1000);
-    const todayEgypt = nowEgypt.toISOString().split('T')[0];
+    const egyptHour = nowEgypt.getUTCHours();
+    // A challenge expires at 22:00 Egypt time the day after it was set.
+    // So "valid" means active_date >= yesterday if it's before 22:00 today,
+    // or active_date >= today if it's already past 22:00.
+    const cutoffDaysBack = egyptHour < 22 ? 1 : 0;
+    const cutoff = new Date(nowEgypt);
+    cutoff.setUTCDate(cutoff.getUTCDate() - cutoffDaysBack);
+    const cutoffStr = cutoff.toISOString().split('T')[0];
+
     const { data: challengeData } = await supabase
       .from('daily_challenges')
       .select('id, character_id, active_date')
-      .eq('active_date', todayEgypt)
+      .gte('active_date', cutoffStr)
+      .order('active_date', { ascending: false })
+      .limit(1)
       .single();
     todayChallenge = challengeData || null;
 
     if (todayChallenge) {
-      // Count total solvers today (use supabase client - adminClient declared below)
       const { count } = await supabase
         .from('challenge_submissions')
         .select('*', { count: 'exact', head: true })
         .eq('challenge_id', todayChallenge.id);
       submissionsCount = count || 0;
 
-      // Check if this user already solved it
       const { data: subData } = await supabase
         .from('challenge_submissions')
         .select('solved_at, coins_awarded')
@@ -185,7 +194,7 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
           { id: 'badges', label: 'Badges', icon: Package },
           { id: 'memories', label: 'Memories', icon: Images },
           { id: 'schedule', label: 'Schedule', icon: Calendar },
-          { id: 'challenge', label: 'من أنا؟', icon: ScrollText },
+          { id: 'challenge', label: 'Daily Quest', icon: ScrollText },
         ].map(tab => {
           const isActive = currentTab === tab.id;
           const Icon = tab.icon;
@@ -494,8 +503,8 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
           <div className="flex items-center gap-3 mb-8 border-b border-gray-100 pb-4">
             <ScrollText className="w-5 h-5 text-secondary" />
             <div>
-              <h2 className="text-xl font-bold text-foreground">من أنا؟ — Daily Mystery</h2>
-              <p className="text-xs text-foreground/50 mt-0.5">A new Bible character challenge every evening at 10:00 PM</p>
+              <h2 className="text-xl font-bold text-foreground">Daily Quest — Who Am I?</h2>
+              <p className="text-xs text-foreground/50 mt-0.5">A new Bible character mystery every day at 10:00 PM</p>
             </div>
           </div>
           <DailyChallenge
