@@ -3,6 +3,14 @@ import { BIBLE_CHARACTERS } from '@/data/bible-characters'
 import { setDailyChallenge, resetDailyChallenge, resetTestCharacters } from '@/app/actions'
 import { SubmitButton } from '@/components/SubmitButton'
 
+type SolverInfo = {
+  userId: string
+  userName: string
+  solvedAt: string
+  coinsAwarded: number
+  rank: number
+}
+
 type DailyChallengeAdminProps = {
   todayChallenge: { id: string; character_id: string; active_date: string } | null
   usedChallenges: {
@@ -10,6 +18,7 @@ type DailyChallengeAdminProps = {
     character_id: string
     active_date: string
     solver_count: number
+    solvers: SolverInfo[]
   }[]
   usedCharacterIds: string[]
 }
@@ -24,8 +33,9 @@ export default function DailyChallengeAdmin({
   usedCharacterIds,
 }: DailyChallengeAdminProps) {
   const todayCharacter = todayChallenge ? getCharacter(todayChallenge.character_id) : null
-  const todaySolverCount =
-    usedChallenges.find((r) => r.id === todayChallenge?.id)?.solver_count ?? 0
+  const todayEntry = usedChallenges.find((r) => r.id === todayChallenge?.id)
+  const todaySolvers = todayEntry?.solvers || []
+  const todaySolverCount = todaySolvers.length
 
   const usedSet = new Set(usedCharacterIds)
   const availableCharacters = BIBLE_CHARACTERS.filter((c) => !usedSet.has(c.id))
@@ -80,16 +90,58 @@ export default function DailyChallengeAdmin({
           )}
         </div>
         {todayCharacter && todayChallenge ? (
-          <div className="space-y-1">
-            <p className="text-foreground font-bold text-base">
-              {todayCharacter.name_en}{' '}
-              <span className="text-foreground/60 font-normal text-sm" dir="rtl">({todayCharacter.name_ar})</span>
-            </p>
-            <p className="text-xs text-foreground/50">Active Date: {todayChallenge.active_date}</p>
-            <div className="flex items-center gap-1 text-xs text-secondary font-medium">
-              <Users className="w-3 h-3" />
-              {todaySolverCount} {todaySolverCount === 1 ? 'solver' : 'solvers'} so far
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <p className="text-foreground font-bold text-base">
+                {todayCharacter.name_en}{' '}
+                <span className="text-foreground/60 font-normal text-sm" dir="rtl">({todayCharacter.name_ar})</span>
+              </p>
+              <p className="text-xs text-foreground/50">Active Date: {todayChallenge.active_date}</p>
+              <div className="flex items-center gap-1 text-xs text-secondary font-medium">
+                <Users className="w-3 h-3" />
+                {todaySolverCount} {todaySolverCount === 1 ? 'solver' : 'solvers'} so far
+              </div>
             </div>
+
+            {/* Solvers List */}
+            {todaySolvers.length > 0 ? (
+              <div className="mt-3 pt-3 border-t border-primary/10 space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-bold uppercase tracking-wider text-primary">
+                    Today&apos;s Solvers ({todaySolvers.length})
+                  </p>
+                  <span className="text-[11px] text-foreground/40 font-medium">
+                    Order of completion
+                  </span>
+                </div>
+                <div className="divide-y divide-primary/10 rounded-xl border border-primary/15 bg-white overflow-hidden shadow-xs">
+                  {todaySolvers.map((s) => (
+                    <div key={s.userId} className="flex items-center justify-between px-3.5 py-2.5 text-xs">
+                      <div className="flex items-center gap-2.5">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-black ${
+                          s.rank === 1 ? 'bg-amber-100 text-amber-900 border border-amber-200' :
+                          s.rank === 2 ? 'bg-orange-100 text-orange-900 border border-orange-200' :
+                          'bg-gray-100 text-gray-700'
+                        }`}>
+                          {s.rank === 1 ? '1st' : s.rank === 2 ? '2nd' : s.rank === 3 ? '3rd' : `${s.rank}th`}
+                        </span>
+                        <span className="font-bold text-foreground text-sm">{s.userName}</span>
+                      </div>
+                      <div className="flex items-center gap-3 font-semibold">
+                        <span className="text-foreground/40 text-[11px]">
+                          {new Date(s.solvedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        <span className="text-[#D97746] font-black">
+                          +{s.coinsAwarded} coins
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p className="text-xs text-foreground/40 italic pt-1">No members have solved today&apos;s mystery yet.</p>
+            )}
           </div>
         ) : (
           <p className="text-foreground/50 text-sm italic">No challenge is active right now.</p>
@@ -193,6 +245,37 @@ export default function DailyChallengeAdmin({
                         {uc.solver_count} solvers
                       </span>
                     </div>
+
+                    {uc.solvers && uc.solvers.length > 0 && (
+                      <details className="mt-3 pt-2.5 border-t border-secondary/15 group">
+                        <summary className="text-xs font-bold text-secondary hover:text-secondary/80 cursor-pointer list-none flex items-center justify-between">
+                          <span>View Solvers ({uc.solvers.length})</span>
+                          <span className="text-[10px] text-foreground/40 font-normal group-open:hidden">Expand</span>
+                        </summary>
+                        <div className="mt-2 space-y-1.5 divide-y divide-secondary/10">
+                          {uc.solvers.map((s) => (
+                            <div key={s.userId} className="flex items-center justify-between text-xs pt-1.5 first:pt-0">
+                              <div className="flex items-center gap-2">
+                                <span className={`px-1.5 py-0.5 rounded text-[9px] font-black ${
+                                  s.rank === 1 ? 'bg-amber-100 text-amber-900' :
+                                  s.rank === 2 ? 'bg-orange-100 text-orange-900' :
+                                  'bg-gray-100 text-gray-700'
+                                }`}>
+                                  {s.rank === 1 ? '1st' : s.rank === 2 ? '2nd' : s.rank === 3 ? '3rd' : `${s.rank}th`}
+                                </span>
+                                <span className="font-semibold text-foreground">{s.userName}</span>
+                              </div>
+                              <div className="flex items-center gap-2 font-medium">
+                                <span className="text-foreground/40 text-[10px]">
+                                  {new Date(s.solvedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                                <span className="font-bold text-[#D97746]">+{s.coinsAwarded}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </details>
+                    )}
                   </div>
 
                   <form action={resetDailyChallenge}>

@@ -25,7 +25,19 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
 
   // Daily Challenge data
   let todayChallenge: { id: string; character_id: string; active_date: string } | null = null;
-  let usedChallenges: { id: string; character_id: string; active_date: string; solver_count: number }[] = [];
+  let usedChallenges: {
+    id: string
+    character_id: string
+    active_date: string
+    solver_count: number
+    solvers: {
+      userId: string
+      userName: string
+      solvedAt: string
+      coinsAwarded: number
+      rank: number
+    }[]
+  }[] = [];
   let usedCharacterIds: string[] = [];
   try {
     const nowEgypt = new Date(Date.now() + 3 * 60 * 60 * 1000);
@@ -48,17 +60,50 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
       const activeRaw = allChallenges.find(c => c.active_date >= cutoffStr);
       todayChallenge = activeRaw || null;
 
-      // All used challenges with solver counts
-      const withCounts = await Promise.all(
-        allChallenges.map(async (ch) => {
-          const { count } = await adminClient
-            .from('challenge_submissions')
-            .select('*', { count: 'exact', head: true })
-            .eq('challenge_id', ch.id);
-          return { ...ch, solver_count: count || 0 };
-        })
-      );
-      usedChallenges = withCounts;
+      // Fetch all submissions with solver profile names
+      const { data: allSubmissions } = await adminClient
+        .from('challenge_submissions')
+        .select('challenge_id, user_id, solved_at, coins_awarded')
+        .order('solved_at', { ascending: true });
+
+      const { data: allProfiles } = await adminClient
+        .from('profiles')
+        .select('id, email, full_name');
+
+      const profileMap = new Map((allProfiles || []).map(p => [p.id, p.full_name || p.email || 'Member']));
+
+      type SolverRecord = {
+        userId: string
+        userName: string
+        solvedAt: string
+        coinsAwarded: number
+        rank: number
+      }
+
+      const submissionsByChallenge: Record<string, SolverRecord[]> = {};
+
+      (allSubmissions || []).forEach(sub => {
+        if (!submissionsByChallenge[sub.challenge_id]) {
+          submissionsByChallenge[sub.challenge_id] = [];
+        }
+        const rank = submissionsByChallenge[sub.challenge_id].length + 1;
+        submissionsByChallenge[sub.challenge_id].push({
+          userId: sub.user_id,
+          userName: profileMap.get(sub.user_id) || 'Member',
+          solvedAt: sub.solved_at,
+          coinsAwarded: sub.coins_awarded,
+          rank,
+        });
+      });
+
+      usedChallenges = allChallenges.map(ch => {
+        const solvers = submissionsByChallenge[ch.id] || [];
+        return {
+          ...ch,
+          solver_count: solvers.length,
+          solvers,
+        };
+      });
     }
   } catch (e) {
     // daily_challenges table may not exist yet
