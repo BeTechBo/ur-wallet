@@ -632,9 +632,8 @@ export async function submitChallengeAnswer({
 
   const rank = (count || 0) + 1
 
-  // 5 coins if solved on clue 1, 4 coins on clue 2, 3 coins on clue 3
-  const countRevealed = Number(cluesRevealed) || 1
-  const coinsAwarded = countRevealed === 1 ? 5 : countRevealed === 2 ? 4 : 3
+  // 1st solver gets 10 points, 2nd gets 8 points, everyone else gets 5 points
+  const coinsAwarded = rank === 1 ? 10 : rank === 2 ? 8 : 5
 
   // Insert submission
   await adminClient.from('challenge_submissions').insert({
