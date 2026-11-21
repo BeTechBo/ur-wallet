@@ -1,6 +1,8 @@
-import { Users, Coins, Mail, Plus, Trophy, Cake, Calendar, CheckCircle, Clock, Sparkles, Award } from 'lucide-react';
-import { registerMember, distributeVerses, sendBirthdayAction, distributeSchedule, distributeLeaderboard } from '@/app/actions';
+import { Users, Coins, Mail, Plus, Trophy, Cake, Calendar, CheckCircle, Clock, Sparkles, Award, TrendingUp, TrendingDown } from 'lucide-react';
+import { registerMember, distributeVerses, sendBirthdayAction, distributeSchedule, distributeLeaderboard, finalizeRankArrowsNow } from '@/app/actions';
 import { createAdminClient } from '@/utils/supabase/admin';
+import { cookies } from 'next/headers';
+import { calculateRankTrends } from '@/lib/rankTrends';
 import AwardForm from './AwardForm';
 import AdminSchedule from './AdminSchedule';
 import MemoriesAdmin from './MemoriesAdmin';
@@ -10,7 +12,7 @@ import { SubmitButton } from '@/components/SubmitButton';
 export default async function AdminDashboard(props: { searchParams?: Promise<{ error?: string }> }) {
   const adminClient = createAdminClient();
   const { data: users } = await adminClient.from('profiles').select('id, email, full_name, date_of_birth').eq('role', 'user');
-  const { data: allTransactions } = await adminClient.from('transactions').select('user_id, points_added, event_name');
+  const { data: allTransactions } = await adminClient.from('transactions').select('user_id, points_added, event_name, created_at');
   const { data: events } = await adminClient.from('events').select('*');
 
   // Memory albums
@@ -201,6 +203,12 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
 
   const leaderboard = Array.from(leaderboardMap.values()).sort((a, b) => b.totalCoins - a.totalCoins);
   const uniqueScores = Array.from(new Set(leaderboard.map(u => u.totalCoins))).sort((a, b) => b - a);
+
+  const cookieStore = await cookies();
+  const settledCookieRaw = cookieStore.get('ur_arrows_settled_at')?.value;
+  const cookieSettledAt = settledCookieRaw ? parseInt(settledCookieRaw, 10) : null;
+  const allUserIds = (users || []).map(u => u.id);
+  const trendResult = calculateRankTrends(allUserIds, allTransactions, cookieSettledAt);
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -596,6 +604,25 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
           <Trophy className="w-5 h-5 text-secondary" />
           <h2 className="font-bold text-xl text-foreground">Community Leaderboard</h2>
         </div>
+
+        {trendResult.isSessionInProgress && (
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 bg-amber-50/90 border border-amber-200 rounded-xl mb-6">
+            <div className="flex items-center gap-2.5 text-xs font-bold text-amber-900">
+              <Clock className="w-4 h-4 text-amber-600 shrink-0 animate-pulse" />
+              <span>
+                Points session in progress: Rank trend arrows are paused and will settle in {trendResult.remainingMinutes} min (giving you time to add all event points).
+              </span>
+            </div>
+            <form action={finalizeRankArrowsNow}>
+              <SubmitButton
+                loadingText="Applying..."
+                className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold shadow-xs transition-colors shrink-0 cursor-pointer"
+              >
+                Apply Arrows Now
+              </SubmitButton>
+            </form>
+          </div>
+        )}
         
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -610,10 +637,45 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ e
             <tbody>
               {leaderboard.map((user) => {
                 const userRank = uniqueScores.indexOf(user.totalCoins) + 1;
+                const trendItem = trendResult.userTrends.get(user.userId);
                 return (
                 <tr key={user.userId} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
                   <td className="py-4 px-4 font-bold text-foreground/50">#{userRank}</td>
-                  <td className="py-4 px-4 font-bold text-foreground">{user.name}</td>
+                  <td className="py-4 px-4 font-bold text-foreground">
+                    <div className="flex items-center gap-2">
+                      <span>{user.name}</span>
+                      {trendItem?.trend === 'up' && (
+                        <span
+                          className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[11px] font-black bg-emerald-50 text-emerald-600 border border-emerald-200/80 shadow-xs"
+                          title={`Climbed ${trendItem.diff} ${trendItem.diff === 1 ? 'rank' : 'ranks'}${trendItem.prevRank ? ` (was #${trendItem.prevRank})` : ''}`}
+                        >
+                          <TrendingUp className="w-3 h-3 stroke-[2.5]" />
+                          <span>{trendItem.diff > 0 ? `+${trendItem.diff}` : ''}</span>
+                        </span>
+                      )}
+                      {trendItem?.trend === 'down' && (
+                        <span
+                          className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[11px] font-black bg-rose-50 text-rose-600 border border-rose-200/80 shadow-xs"
+                          title={`Dropped ${trendItem.diff} ${trendItem.diff === 1 ? 'rank' : 'ranks'}${trendItem.prevRank ? ` (was #${trendItem.prevRank})` : ''}`}
+                        >
+                          <TrendingDown className="w-3 h-3 stroke-[2.5]" />
+                          <span>{trendItem.diff > 0 ? `${trendItem.diff}` : ''}</span>
+                        </span>
+                      )}
+                      {trendItem?.trend === 'same' && (
+                        <span className="text-gray-300 font-bold text-xs px-1 select-none" title="Rank unchanged">•</span>
+                      )}
+                      {trendItem?.trend === 'pending' && (
+                        <span
+                          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-600 border border-amber-200/70"
+                          title="Points session in progress: Rank trend arrows are settling"
+                        >
+                          <Clock className="w-2.5 h-2.5" />
+                          <span>Settling</span>
+                        </span>
+                      )}
+                    </div>
+                  </td>
                   <td className="py-4 px-4 font-black text-secondary text-right">{user.totalCoins}</td>
                   <td className="py-4 px-4 text-xs font-medium text-foreground/70">
                     {user.badges.size > 0 ? (

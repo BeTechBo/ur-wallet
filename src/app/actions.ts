@@ -13,6 +13,7 @@ import ScheduleEmail from '@/emails/ScheduleEmail'
 import LeaderboardEmail from '@/emails/LeaderboardEmail'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import versesData from '@/data/verses.json'
 import React from 'react'
 
@@ -192,6 +193,12 @@ export async function awardCoins(formData: FormData) {
     }
   }
 
+  try {
+    const cookieStore = await cookies()
+    cookieStore.delete('ur_arrows_settled_at')
+  } catch (e) {}
+
+  revalidatePath('/admin')
   revalidatePath('/wallet')
 }
 
@@ -723,6 +730,23 @@ export async function setDailyChallenge(formData: FormData) {
 
   if (insertError) {
     console.error('Failed to set daily challenge:', insertError)
+  }
+
+  revalidatePath('/admin')
+  revalidatePath('/wallet')
+}
+
+// ADMIN: FINALIZE RANK ARROWS NOW
+export async function finalizeRankArrowsNow() {
+  try {
+    const cookieStore = await cookies()
+    cookieStore.set('ur_arrows_settled_at', Date.now().toString(), {
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+      path: '/',
+      httpOnly: true,
+    })
+  } catch (e) {
+    console.error('Failed to set settled cookie:', e)
   }
 
   revalidatePath('/admin')

@@ -1,8 +1,10 @@
-import { Trophy, History, BookOpen, Music, Book, Home, HeartHandshake, Package, Flame, Star, User, Calendar, Lightbulb, Images, ScrollText } from 'lucide-react';
+import { Trophy, History, BookOpen, Music, Book, Home, HeartHandshake, Package, Flame, Star, User, Calendar, Lightbulb, Images, ScrollText, TrendingUp, TrendingDown, Clock } from 'lucide-react';
 import AnimatedWallet from '@/components/AnimatedWallet';
 import URCoin from '@/components/URCoin';
 import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
+import { cookies } from 'next/headers';
+import { calculateRankTrends } from '@/lib/rankTrends';
 import { redirect } from 'next/navigation';
 import { PACKAGES } from '@/lib/packages';
 import Link from 'next/link';
@@ -133,7 +135,7 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
     : null;
 
   // Calculate Rank
-  const { data: allTxs } = await adminClient.from('transactions').select('user_id, points_added');
+  const { data: allTxs } = await adminClient.from('transactions').select('user_id, points_added, created_at');
   const userTotals: Record<string, number> = {};
   allTxs?.forEach(tx => {
     userTotals[tx.user_id] = (userTotals[tx.user_id] || 0) + tx.points_added;
@@ -144,6 +146,14 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
   
   const uniqueScores = Array.from(new Set(Object.values(userTotals))).sort((a, b) => b - a);
   const myRank = uniqueScores.indexOf(totalCoins) + 1;
+
+  // Rank trend calculation
+  const cookieStore = await cookies();
+  const settledCookieRaw = cookieStore.get('ur_arrows_settled_at')?.value;
+  const cookieSettledAt = settledCookieRaw ? parseInt(settledCookieRaw, 10) : null;
+  const allUserIds = Array.from(new Set([...Object.keys(userTotals), authData.user.id]));
+  const rankTrendsResult = calculateRankTrends(allUserIds, allTxs, cookieSettledAt);
+  const myTrend = rankTrendsResult.userTrends.get(authData.user.id);
 
   // Determine Rank Color
   let rankColorClass = "text-secondary";
@@ -180,7 +190,36 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
           <Trophy className="w-6 h-6 text-primary" />
           <div className="flex flex-col">
             <span className="text-[10px] text-foreground/50 font-bold uppercase tracking-widest">Current Rank</span>
-            <span className="text-lg font-bold text-foreground">#{myRank || '-'}</span>
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold text-foreground">#{myRank || '-'}</span>
+              {myTrend?.trend === 'up' && (
+                <span
+                  className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-black bg-emerald-50 text-emerald-600 border border-emerald-200/80 shadow-xs"
+                  title={`Climbed ${myTrend.diff} ${myTrend.diff === 1 ? 'rank' : 'ranks'}${myTrend.prevRank ? ` (was #${myTrend.prevRank})` : ''}`}
+                >
+                  <TrendingUp className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>{myTrend.diff > 0 ? `+${myTrend.diff}` : ''}</span>
+                </span>
+              )}
+              {myTrend?.trend === 'down' && (
+                <span
+                  className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-black bg-rose-50 text-rose-600 border border-rose-200/80 shadow-xs"
+                  title={`Dropped ${myTrend.diff} ${myTrend.diff === 1 ? 'rank' : 'ranks'}${myTrend.prevRank ? ` (was #${myTrend.prevRank})` : ''}`}
+                >
+                  <TrendingDown className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>{myTrend.diff > 0 ? `${myTrend.diff}` : ''}</span>
+                </span>
+              )}
+              {myTrend?.trend === 'pending' && (
+                <span
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-600 border border-amber-200/70"
+                  title="Points session in progress: Rank trend arrows are settling"
+                >
+                  <Clock className="w-3 h-3" />
+                  <span>Settling</span>
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>
