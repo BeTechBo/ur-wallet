@@ -1,4 +1,4 @@
-import { Trophy, History, BookOpen, Music, Book, Home, HeartHandshake, Package, Flame, Star, User, Calendar, Lightbulb, Images, ScrollText, TrendingUp, TrendingDown, Clock } from 'lucide-react';
+import { Trophy, History, BookOpen, Music, Book, Home, HeartHandshake, Package, Flame, Star, User, Calendar, Lightbulb, Images, ScrollText, TrendingUp, TrendingDown, Clock, Gift } from 'lucide-react';
 import AnimatedWallet from '@/components/AnimatedWallet';
 import URCoin from '@/components/URCoin';
 import { createClient } from '@/utils/supabase/server';
@@ -11,6 +11,7 @@ import Link from 'next/link';
 import ScheduleView from './ScheduleView';
 import MemoriesView from './MemoriesView';
 import DailyChallenge from './DailyChallenge';
+import SendGifts from './SendGifts';
 import { BIBLE_CHARACTERS } from '@/data/bible-characters';
 
 const NaqoosIcon = ({ className }: { className?: string }) => (
@@ -177,6 +178,112 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
   const fullName = profile?.full_name || authData.user.user_metadata?.full_name || '-';
   const displayName = fullName !== '-' ? fullName.split(' ')[0] : 'My';
 
+  // ---- Gift System Data ----
+  const monthYear = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+
+  // Gift budget (get or will be created on first send)
+  let giftBudgetRemaining = 30;
+  let giftBudgetTotal = 30;
+  try {
+    const { data: budgetData } = await adminClient
+      .from('gift_budgets')
+      .select('budget_remaining, budget_total')
+      .eq('user_id', authData.user.id)
+      .eq('month_year', monthYear)
+      .maybeSingle();
+    if (budgetData) {
+      giftBudgetRemaining = budgetData.budget_remaining;
+      giftBudgetTotal = budgetData.budget_total;
+    }
+  } catch (e) {}
+
+  // All members except self (for recipient selection)
+  let giftableMembers: { id: string; full_name: string; email: string }[] = [];
+  try {
+    const { data: membersData } = await adminClient
+      .from('profiles')
+      .select('id, full_name, email')
+      .eq('role', 'user')
+      .neq('id', authData.user.id)
+      .order('full_name', { ascending: true });
+    giftableMembers = (membersData || []).map(m => ({
+      id: m.id,
+      full_name: m.full_name || m.email || '',
+      email: m.email || '',
+    }));
+  } catch (e) {}
+
+  // Sent gifts this month
+  let sentGifts: {
+    id: string; recipient_name: string; coins_amount: number;
+    verse_reference: string | null; personal_note: string | null;
+    sent_at: string; opened_at: string | null;
+  }[] = [];
+  try {
+    const { data: sentRaw } = await adminClient
+      .from('gifts')
+      .select('id, recipient_id, coins_amount, verse_reference, personal_note, sent_at, opened_at')
+      .eq('sender_id', authData.user.id)
+      .order('sent_at', { ascending: false });
+
+    const recipientIds = [...new Set((sentRaw || []).map(g => g.recipient_id))];
+    let recipientMap: Record<string, string> = {};
+    if (recipientIds.length > 0) {
+      const { data: rProfiles } = await adminClient
+        .from('profiles')
+        .select('id, full_name, email')
+        .in('id', recipientIds);
+      (rProfiles || []).forEach(p => {
+        recipientMap[p.id] = p.full_name || p.email || 'Member';
+      });
+    }
+    sentGifts = (sentRaw || []).map(g => ({
+      id: g.id,
+      recipient_name: recipientMap[g.recipient_id] || 'Member',
+      coins_amount: g.coins_amount,
+      verse_reference: g.verse_reference,
+      personal_note: g.personal_note,
+      sent_at: g.sent_at,
+      opened_at: g.opened_at,
+    }));
+  } catch (e) {}
+
+  // Received gifts
+  let receivedGifts: {
+    id: string; sender_name: string; coins_amount: number;
+    verse_text: string | null; verse_reference: string | null;
+    personal_note: string | null; sent_at: string; opened_at: string | null;
+  }[] = [];
+  try {
+    const { data: recvRaw } = await adminClient
+      .from('gifts')
+      .select('id, sender_id, coins_amount, verse_text, verse_reference, personal_note, sent_at, opened_at')
+      .eq('recipient_id', authData.user.id)
+      .order('sent_at', { ascending: false });
+
+    const senderIds = [...new Set((recvRaw || []).map(g => g.sender_id))];
+    let senderMap: Record<string, string> = {};
+    if (senderIds.length > 0) {
+      const { data: sProfiles } = await adminClient
+        .from('profiles')
+        .select('id, full_name, email')
+        .in('id', senderIds);
+      (sProfiles || []).forEach(p => {
+        senderMap[p.id] = p.full_name || p.email || 'Member';
+      });
+    }
+    receivedGifts = (recvRaw || []).map(g => ({
+      id: g.id,
+      sender_name: senderMap[g.sender_id] || 'Member',
+      coins_amount: g.coins_amount,
+      verse_text: g.verse_text,
+      verse_reference: g.verse_reference,
+      personal_note: g.personal_note,
+      sent_at: g.sent_at,
+      opened_at: g.opened_at,
+    }));
+  } catch (e) {}
+
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
@@ -234,6 +341,7 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
           { id: 'memories', label: 'Memories', icon: Images },
           { id: 'schedule', label: 'Schedule', icon: Calendar },
           { id: 'challenge', label: 'Daily Quest', icon: ScrollText },
+          { id: 'gifts', label: 'Send Gifts', icon: Gift },
         ].map(tab => {
           const isActive = currentTab === tab.id;
           const Icon = tab.icon;
@@ -547,6 +655,18 @@ export default async function WalletPage(props: { searchParams?: Promise<{ tab?:
             userId={authData.user.id}
           />
         </div>
+      )}
+
+      {currentTab === 'gifts' && (
+        <SendGifts
+          userId={authData.user.id}
+          verses={verses || []}
+          members={giftableMembers}
+          budgetRemaining={giftBudgetRemaining}
+          budgetTotal={giftBudgetTotal}
+          sentGifts={sentGifts}
+          receivedGifts={receivedGifts}
+        />
       )}
     </div>
   );

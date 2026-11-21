@@ -11,6 +11,7 @@ import VerseEmail from '@/emails/VerseEmail'
 import BirthdayEmail from '@/emails/BirthdayEmail'
 import ScheduleEmail from '@/emails/ScheduleEmail'
 import LeaderboardEmail from '@/emails/LeaderboardEmail'
+import GiftEmail from '@/emails/GiftEmail'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
@@ -750,5 +751,141 @@ export async function finalizeRankArrowsNow() {
   }
 
   revalidatePath('/admin')
+  revalidatePath('/wallet')
+}
+
+// SEND GIFT
+export async function sendGift(formData: FormData): Promise<{ error?: string } | undefined> {
+  const supabase = await createClient()
+  const { data: authData } = await supabase.auth.getUser()
+  if (!authData.user) return { error: 'Not authenticated' }
+
+  const senderId = authData.user.id
+  const recipientId = formData.get('recipientId') as string
+  const coinsAmount = parseInt(formData.get('coinsAmount') as string || '0', 10)
+  const verseText = (formData.get('verseText') as string) || null
+  const verseReference = (formData.get('verseReference') as string) || null
+  const personalNote = (formData.get('personalNote') as string) || null
+
+  if (!recipientId || recipientId === senderId) return { error: 'Invalid recipient.' }
+  if (!coinsAmount || coinsAmount < 1) return { error: 'Amount must be at least 1.' }
+
+  const adminClient = createAdminClient()
+
+  // Current month key: 'YYYY-MM'
+  const now = new Date()
+  const monthYear = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+
+  // Get or create gift budget for this user+month
+  const existingBudget = await adminClient
+    .from('gift_budgets')
+    .select('id, budget_remaining')
+    .eq('user_id', senderId)
+    .eq('month_year', monthYear)
+    .maybeSingle()
+
+  let budgetId: string
+  let budgetRemaining: number
+
+  if (!existingBudget.data) {
+    // Insert a fresh 30-coin budget for this month
+    const { data: newBudget } = await adminClient
+      .from('gift_budgets')
+      .insert({ user_id: senderId, month_year: monthYear, budget_remaining: 30, budget_total: 30 })
+      .select('id, budget_remaining')
+      .single()
+    if (!newBudget) return { error: 'Failed to initialise gift budget.' }
+    budgetId = newBudget.id
+    budgetRemaining = newBudget.budget_remaining
+  } else {
+    budgetId = existingBudget.data.id
+    budgetRemaining = existingBudget.data.budget_remaining
+  }
+
+  if (budgetRemaining < coinsAmount) {
+    return { error: `Not enough budget. You have ${budgetRemaining} coins left this month.` }
+  }
+
+  // Check 1-gift-per-recipient-per-month rule
+  const { count: existingCount } = await adminClient
+    .from('gifts')
+    .select('*', { count: 'exact', head: true })
+    .eq('sender_id', senderId)
+    .eq('recipient_id', recipientId)
+    .eq('month_year', monthYear)
+
+  if ((existingCount ?? 0) > 0) {
+    return { error: 'You can only send one gift per person per month.' }
+  }
+
+  // Generate a unique token
+  const token = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}-${Math.random().toString(36).slice(2, 6)}`
+
+  // Insert gift record
+  const { error: insertError } = await adminClient.from('gifts').insert({
+    sender_id: senderId,
+    recipient_id: recipientId,
+    coins_amount: coinsAmount,
+    verse_text: verseText,
+    verse_reference: verseReference,
+    personal_note: personalNote,
+    token,
+    month_year: monthYear,
+  })
+
+  if (insertError) {
+    console.error('Failed to insert gift:', insertError)
+    return { error: 'Failed to send gift. Please try again.' }
+  }
+
+  // Deduct from budget
+  await adminClient
+    .from('gift_budgets')
+    .update({ budget_remaining: budgetRemaining - coinsAmount })
+    .eq('id', budgetId)
+
+  // Fetch sender name and recipient email
+  const { data: senderProfile } = await adminClient
+    .from('profiles')
+    .select('full_name, email')
+    .eq('id', senderId)
+    .maybeSingle()
+
+  const { data: recipientProfile } = await adminClient
+    .from('profiles')
+    .select('full_name, email')
+    .eq('id', recipientId)
+    .maybeSingle()
+
+  const senderName = senderProfile?.full_name || senderProfile?.email?.split('@')[0] || 'Someone'
+  const recipientName = recipientProfile?.full_name || recipientProfile?.email?.split('@')[0] || 'Friend'
+  const recipientEmail = recipientProfile?.email
+
+  // Send the gift email
+  if (recipientEmail) {
+    try {
+      const giftUrl = `${siteUrl}/gift/${token}`
+      const htmlStr = await render(GiftEmail({
+        senderName,
+        recipientName,
+        coinsAmount,
+        personalNote: personalNote || '',
+        verseText: verseText || '',
+        verseReference: verseReference || '',
+        giftUrl,
+      }) as React.ReactElement)
+
+      await transporter.sendMail({
+        from: `"The Upper Room" <${process.env.GMAIL_USER}>`,
+        to: recipientEmail,
+        subject: `${senderName} sent you a gift from The Upper Room! 🎁`,
+        html: htmlStr,
+      })
+    } catch (err) {
+      console.error('Failed to send gift email:', err)
+      // Don't fail the whole operation if email fails
+    }
+  }
+
   revalidatePath('/wallet')
 }
