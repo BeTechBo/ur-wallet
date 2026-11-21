@@ -107,8 +107,8 @@ export const GiftEmail = ({
                   A note for you
                 </Text>
                 <Text
-                  className="text-[#324b4c] text-base leading-7 italic border-l-4 border-[#d88452] pl-4 m-0"
-                  style={{ borderLeft: "4px solid #d88452" }}
+                  className="text-[#324b4c] text-base leading-7 italic pl-4 m-0"
+                  style={{ borderLeft: "4px solid #d88452", paddingLeft: "16px" }}
                 >
                   {personalNote}
                 </Text>
@@ -117,35 +117,16 @@ export const GiftEmail = ({
 
             <Hr className="border-[#E8DFD5] my-6" />
 
-            {/* Mystery reveal teaser */}
-            <Text className="text-[#324b4c] text-base text-center leading-7 m-0 mb-2">
-              Inside this gift are{" "}
-              <strong>
-                {coinsAmount} UR-Coin{coinsAmount !== 1 ? "s" : ""}
-              </strong>{" "}
-              and a special verse chosen just for you.
-            </Text>
-            <Text className="text-[#324b4c]/60 text-sm text-center m-0 mb-6">
-              Click to unwrap and claim your gift!
-            </Text>
-
             {/* CTA Button */}
-            <Section className="text-center mt-6 mb-6">
+            <Section className="text-center mt-2 mb-4">
               <Button
-                className="bg-[#d88452] rounded-xl text-white text-lg font-black no-underline text-center px-12 py-5 shadow-sm tracking-wide"
+                className="bg-[#b84c1c] rounded-2xl text-white text-xl font-black no-underline text-center px-14 py-5 tracking-wide"
                 href={giftUrl}
               >
-                Unwrap Your Gift
+                🎁 Unwrap Your Gift
               </Button>
             </Section>
 
-            <Hr className="border-[#E8DFD5] my-6" />
-
-            <Text className="text-[#8898aa] text-xs leading-5 text-center m-0">
-              This gift was sent with love by a member of The Upper Room family.
-              <br />
-              Please do NOT reply to this email.
-            </Text>
           </Container>
 
           {/* Footer bar */}
